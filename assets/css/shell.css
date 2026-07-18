@@ -1,0 +1,694 @@
+/*
+ * Sabri Unified Application Shell public styles.
+ */
+
+:root {
+	--sabri-shell-admin-bar: 0px;
+}
+
+body.admin-bar {
+	--sabri-shell-admin-bar: 32px;
+}
+
+body.sabri-shell-enabled {
+	--sabri-shell-chrome-height: 112px;
+	--sabri-shell-bg: #f7f7f7;
+	--sabri-shell-surface: #ffffff;
+	--sabri-shell-surface-strong: #f1f3f5;
+	--sabri-shell-text: #202124;
+	--sabri-shell-muted: #5f6368;
+	--sabri-shell-border: #d9dde2;
+	--sabri-shell-focus: #0b57d0;
+	--sabri-shell-shadow: 0 12px 30px rgba(32, 33, 36, 0.12);
+	background: var(--sabri-shell-bg);
+	color: var(--sabri-shell-text);
+	font-size: calc(100% * var(--sabri-shell-font-scale, 1));
+	overflow-x: clip;
+}
+
+body.sabri-shell-theme-dark,
+body.sabri-shell-theme-system {
+	color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	body.sabri-shell-theme-system {
+		--sabri-shell-bg: #111315;
+		--sabri-shell-surface: #181b1f;
+		--sabri-shell-surface-strong: #22262b;
+		--sabri-shell-text: #f3f4f6;
+		--sabri-shell-muted: #b7bec7;
+		--sabri-shell-border: #30363d;
+		--sabri-shell-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+	}
+}
+
+body.sabri-shell-theme-dark {
+	--sabri-shell-bg: #111315;
+	--sabri-shell-surface: #181b1f;
+	--sabri-shell-surface-strong: #22262b;
+	--sabri-shell-text: #f3f4f6;
+	--sabri-shell-muted: #b7bec7;
+	--sabri-shell-border: #30363d;
+	--sabri-shell-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.sabri-shell-enabled *,
+.sabri-shell-enabled *::before,
+.sabri-shell-enabled *::after {
+	box-sizing: border-box;
+}
+
+.sabri-shell-enabled :where(main, #main, #content, .site, .site-content, .content-area, .site-main, .wp-site-blocks, .entry-content, .wp-block-group, .wp-block-columns, .wp-block-column) {
+	max-width: 100%;
+	min-width: 0;
+}
+
+.sabri-shell-enabled :where(img, video, canvas, svg, iframe) {
+	max-width: 100%;
+}
+
+.sabri-shell-enabled :where(pre, code, table) {
+	max-width: 100%;
+}
+
+.sabri-shell-enabled :where(pre, table) {
+	overflow-x: auto;
+}
+
+.sabri-shell-skip-link {
+	position: fixed;
+	inset-block-start: calc(var(--sabri-shell-admin-bar) + 8px);
+	inset-inline-start: 8px;
+	z-index: 100000;
+	padding: 10px 14px;
+	border-radius: var(--sabri-shell-radius, 8px);
+	background: var(--sabri-shell-primary, #f26100);
+	color: #ffffff;
+	text-decoration: none;
+	transform: translateY(-150%);
+}
+
+.sabri-shell-skip-link:focus {
+	transform: translateY(0);
+}
+
+.sabri-shell-main-anchor {
+	display: block;
+	block-size: 0;
+	overflow: hidden;
+}
+
+.sabri-shell-header,
+.sabri-shell-primary-nav {
+	z-index: 9990;
+	background: color-mix(in srgb, var(--sabri-shell-surface) 94%, transparent);
+	backdrop-filter: blur(14px);
+	border-block-end: 1px solid var(--sabri-shell-border);
+}
+
+.sabri-shell-sticky-header .sabri-shell-header,
+.sabri-shell-sticky-header .sabri-shell-primary-nav {
+	position: sticky;
+}
+
+.sabri-shell-static-header .sabri-shell-header,
+.sabri-shell-static-header .sabri-shell-primary-nav {
+	position: static;
+}
+
+.sabri-shell-sticky-header .sabri-shell-header {
+	inset-block-start: var(--sabri-shell-admin-bar);
+}
+
+.sabri-shell-sticky-header .sabri-shell-primary-nav {
+	inset-block-start: calc(var(--sabri-shell-admin-bar) + var(--sabri-shell-header-height, 64px));
+}
+
+.sabri-shell-header-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-height: 64px;
+	max-width: var(--sabri-shell-max-width, 1600px);
+	margin-inline: auto;
+	padding-inline: 18px;
+}
+
+.sabri-shell-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 180px;
+	color: var(--sabri-shell-text);
+	text-decoration: none;
+	font-weight: 700;
+}
+
+.sabri-shell-logo {
+	display: inline-grid;
+	place-items: center;
+	inline-size: 38px;
+	block-size: 38px;
+	border-radius: 10px;
+	background: var(--sabri-shell-primary, #f26100);
+	color: #ffffff;
+	font-weight: 800;
+}
+
+.sabri-shell-brand-text {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sabri-shell-search {
+	display: flex;
+	align-items: center;
+	min-width: 220px;
+	flex: 1 1 460px;
+	border: 1px solid var(--sabri-shell-border);
+	border-radius: var(--sabri-shell-radius, 8px);
+	background: var(--sabri-shell-surface-strong);
+	overflow: hidden;
+}
+
+.sabri-shell-search input {
+	inline-size: 100%;
+	min-inline-size: 0;
+	border: 0;
+	padding: 10px 12px;
+	background: transparent;
+	color: var(--sabri-shell-text);
+}
+
+.sabri-shell-search button,
+.sabri-shell-icon-button,
+.sabri-shell-drawer-close,
+.sabri-shell-bottom-item {
+	min-inline-size: 44px;
+	min-block-size: 44px;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.sabri-shell-search button {
+	border-inline-start: 1px solid var(--sabri-shell-border);
+}
+
+.sabri-shell-menu-button {
+	display: none;
+}
+
+.sabri-shell-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+}
+
+.sabri-shell-action,
+.sabri-shell-profile summary,
+.sabri-shell-profile a {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 40px;
+	padding: 8px 10px;
+	border-radius: var(--sabri-shell-radius, 8px);
+	color: var(--sabri-shell-text);
+	text-decoration: none;
+}
+
+.sabri-shell-create-action {
+	background: var(--sabri-shell-primary, #f26100);
+	color: #ffffff;
+	font-weight: 700;
+}
+
+.sabri-shell-profile {
+	position: relative;
+}
+
+.sabri-shell-profile summary {
+	cursor: pointer;
+}
+
+.sabri-shell-profile[open] {
+	z-index: 10000;
+}
+
+.sabri-shell-profile[open] summary {
+	background: var(--sabri-shell-surface-strong);
+}
+
+.sabri-shell-profile a {
+	display: flex;
+	background: var(--sabri-shell-surface);
+	border: 1px solid var(--sabri-shell-border);
+}
+
+.sabri-shell-primary-nav {
+	overflow-x: auto;
+	scrollbar-width: thin;
+}
+
+.sabri-shell-primary-nav ul {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-block-size: 48px;
+	max-width: var(--sabri-shell-max-width, 1600px);
+	margin: 0 auto;
+	padding: 0 18px;
+	list-style: none;
+	white-space: nowrap;
+}
+
+.sabri-shell-primary-nav a,
+.sabri-shell-left-sidebar a,
+.sabri-shell-panel a {
+	color: var(--sabri-shell-text);
+	text-decoration: none;
+}
+
+.sabri-shell-primary-nav a {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 38px;
+	padding: 8px 12px;
+	border-radius: var(--sabri-shell-radius, 8px);
+}
+
+.sabri-shell-primary-nav a[aria-current="page"],
+.sabri-shell-left-sidebar a[aria-current="page"],
+.sabri-shell-bottom-item[aria-current="page"] {
+	background: color-mix(in srgb, var(--sabri-shell-primary, #f26100) 16%, transparent);
+	color: var(--sabri-shell-primary, #f26100);
+	font-weight: 700;
+}
+
+.sabri-shell-layout-host {
+	max-width: var(--sabri-shell-max-width, 1600px);
+	margin-inline: auto;
+	padding: var(--sabri-shell-gap, 24px);
+	gap: var(--sabri-shell-gap, 24px);
+	align-items: start;
+}
+
+.sabri-shell-layout-host.is-ready {
+	display: grid;
+}
+
+body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready {
+	grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);
+}
+
+body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready {
+	grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr) var(--sabri-shell-right-width, 340px);
+}
+
+body.sabri-shell-layout-two.sabri-shell-no-left-sidebar .sabri-shell-layout-host.is-ready,
+body.sabri-shell-layout-three.sabri-shell-no-left-sidebar.sabri-shell-no-right-sidebar .sabri-shell-layout-host.is-ready {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+body.sabri-shell-layout-three.sabri-shell-no-left-sidebar.sabri-shell-has-right-sidebar .sabri-shell-layout-host.is-ready {
+	grid-template-columns: minmax(0, 1fr) var(--sabri-shell-right-width, 340px);
+}
+
+body.sabri-shell-layout-three.sabri-shell-has-left-sidebar.sabri-shell-no-right-sidebar .sabri-shell-layout-host.is-ready {
+	grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);
+}
+
+.sabri-shell-content-column {
+	min-width: 0;
+	max-width: 100%;
+}
+
+.sabri-shell-left-sidebar,
+.sabri-shell-right-sidebar {
+	z-index: 1;
+	max-block-size: calc(100vh - var(--sabri-shell-admin-bar) - var(--sabri-shell-chrome-height) - var(--sabri-shell-gap, 24px));
+	padding: 14px;
+	background: var(--sabri-shell-surface);
+	border-color: var(--sabri-shell-border);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.sabri-shell-layout-host > .sabri-shell-left-sidebar,
+.sabri-shell-layout-host > .sabri-shell-right-sidebar {
+	position: sticky;
+	inset-block-start: calc(var(--sabri-shell-admin-bar) + var(--sabri-shell-chrome-height) + var(--sabri-shell-gap, 24px));
+}
+
+.sabri-shell-static-header .sabri-shell-layout-host > .sabri-shell-left-sidebar,
+.sabri-shell-static-header .sabri-shell-layout-host > .sabri-shell-right-sidebar {
+	inset-block-start: var(--sabri-shell-gap, 24px);
+}
+
+.sabri-shell-left-sidebar {
+	inline-size: var(--sabri-shell-left-width, 280px);
+	border-inline-end: 1px solid var(--sabri-shell-border);
+}
+
+.sabri-shell-right-sidebar {
+	inline-size: var(--sabri-shell-right-width, 340px);
+	border-inline-start: 1px solid var(--sabri-shell-border);
+}
+
+.sabri-shell-compact-desktop .sabri-shell-header-inner {
+	min-height: 56px;
+}
+
+.sabri-shell-compact-desktop .sabri-shell-layout-host {
+	--sabri-shell-gap: max(12px, calc(var(--sabri-shell-gap, 24px) * 0.75));
+}
+
+.sabri-shell-context-button {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	min-block-size: 44px;
+	margin: 10px var(--sabri-shell-gap, 24px) 0 auto;
+	padding: 8px 14px;
+	border: 1px solid var(--sabri-shell-border);
+	border-radius: var(--sabri-shell-radius, 8px);
+	background: var(--sabri-shell-surface);
+	color: var(--sabri-shell-text);
+	cursor: pointer;
+}
+
+.sabri-shell-user-card,
+.sabri-shell-panel {
+	margin-block-end: 14px;
+	padding: 14px;
+	border: 1px solid var(--sabri-shell-border);
+	border-radius: var(--sabri-shell-radius, 8px);
+	background: var(--sabri-shell-surface-strong);
+}
+
+.sabri-shell-user-card {
+	display: grid;
+	gap: 8px;
+}
+
+.sabri-shell-user-card a {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 36px;
+	margin-inline-end: 6px;
+	color: var(--sabri-shell-primary, #f26100);
+	font-weight: 700;
+}
+
+.sabri-shell-avatar {
+	border-radius: 50%;
+}
+
+.sabri-shell-sidebar-group h2,
+.sabri-shell-panel h2 {
+	margin: 0 0 8px;
+	color: var(--sabri-shell-muted);
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0;
+	text-transform: uppercase;
+}
+
+.sabri-shell-sidebar-group ul,
+.sabri-shell-panel ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sabri-shell-left-sidebar li + li,
+.sabri-shell-panel li + li {
+	margin-block-start: 4px;
+}
+
+.sabri-shell-left-sidebar a {
+	display: flex;
+	align-items: center;
+	min-block-size: 40px;
+	padding: 8px 10px;
+	border-radius: var(--sabri-shell-radius, 8px);
+}
+
+.sabri-shell-sidebar-footer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding-block: 14px;
+	font-size: 0.86rem;
+}
+
+.sabri-shell-sidebar-footer a {
+	color: var(--sabri-shell-muted);
+}
+
+.sabri-shell-home-feed {
+	max-width: min(100%, 920px);
+	margin: 24px auto;
+	padding-inline: 16px;
+}
+
+.sabri-shell-home-feed h2 {
+	margin-block: 0 14px;
+	font-size: 1.35rem;
+	letter-spacing: 0;
+}
+
+.sabri-shell-feed-list {
+	display: grid;
+	gap: 14px;
+}
+
+.sabri-shell-feed-card {
+	display: grid;
+	grid-template-columns: minmax(96px, 180px) minmax(0, 1fr);
+	gap: 14px;
+	padding: 14px;
+	border: 1px solid var(--sabri-shell-border);
+	border-radius: var(--sabri-shell-radius, 8px);
+	background: var(--sabri-shell-surface);
+}
+
+.sabri-shell-feed-image img {
+	display: block;
+	inline-size: 100%;
+	block-size: auto;
+	aspect-ratio: 16 / 10;
+	object-fit: cover;
+	border-radius: calc(var(--sabri-shell-radius, 8px) - 2px);
+}
+
+.sabri-shell-feed-body {
+	min-width: 0;
+}
+
+.sabri-shell-feed-body h3 {
+	margin: 0 0 6px;
+	font-size: 1.05rem;
+	letter-spacing: 0;
+}
+
+.sabri-shell-feed-meta {
+	margin: 0 0 8px;
+	color: var(--sabri-shell-muted);
+	font-size: 0.88rem;
+}
+
+.sabri-shell-feed-excerpt p {
+	margin-block: 0;
+}
+
+.sabri-shell-feed-pagination ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 16px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.sabri-shell-feed-pagination a,
+.sabri-shell-feed-pagination span {
+	display: inline-flex;
+	align-items: center;
+	min-block-size: 38px;
+	padding: 8px 12px;
+	border: 1px solid var(--sabri-shell-border);
+	border-radius: var(--sabri-shell-radius, 8px);
+}
+
+.sabri-shell-drawer-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 10000;
+	background: rgba(0, 0, 0, 0.42);
+}
+
+.sabri-shell-drawer {
+	position: fixed;
+	z-index: 10001;
+	inset-block: 0;
+	inset-inline-start: 0;
+	inline-size: min(92vw, 380px);
+	padding: calc(var(--sabri-shell-admin-bar) + 12px) 14px 18px;
+	background: var(--sabri-shell-surface);
+	box-shadow: var(--sabri-shell-shadow);
+	overflow-y: auto;
+	transform: translateX(-105%);
+	transition: transform 180ms ease;
+}
+
+.sabri-shell-drawer-context {
+	inset-inline-start: auto;
+	inset-inline-end: 0;
+	transform: translateX(105%);
+}
+
+.sabri-shell-drawer.is-open {
+	transform: translateX(0);
+}
+
+.sabri-shell-drawer .sabri-shell-left-sidebar,
+.sabri-shell-drawer .sabri-shell-right-sidebar {
+	position: static;
+	inline-size: auto;
+	border: 0;
+	padding: 0;
+	overflow: visible;
+}
+
+.sabri-shell-drawer-close {
+	float: inline-end;
+	margin-block-end: 8px;
+	font-size: 1.6rem;
+}
+
+.sabri-shell-bottom-nav {
+	display: none;
+}
+
+.sabri-shell-enabled :where(a, button, input, select, textarea, summary):focus-visible {
+	outline: 3px solid var(--sabri-shell-focus);
+	outline-offset: 2px;
+}
+
+body.sabri-shell-drawer-open {
+	overflow: hidden;
+}
+
+@media (max-width: 1199px) {
+	body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready,
+	body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready {
+		grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);
+	}
+
+	.sabri-shell-layout-host > .sabri-shell-right-sidebar {
+		display: none;
+	}
+
+	.sabri-shell-context-button {
+		display: inline-flex;
+	}
+}
+
+@media (max-width: 1023px) {
+	body.admin-bar {
+		--sabri-shell-admin-bar: 46px;
+	}
+
+	.sabri-shell-header-inner {
+		min-height: 58px;
+		padding-inline: 12px;
+	}
+
+	.sabri-shell-menu-button {
+		display: inline-grid;
+		place-items: center;
+	}
+
+	.sabri-shell-brand {
+		min-width: 0;
+		flex: 1 1 auto;
+	}
+
+	.sabri-shell-search,
+	.sabri-shell-header-actions .sabri-shell-action:not(.sabri-shell-notifications),
+	.sabri-shell-profile {
+		display: none;
+	}
+
+	.sabri-shell-layout-host {
+		padding: 12px;
+	}
+
+	body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready,
+	body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready {
+		display: block;
+	}
+
+	.sabri-shell-layout-host > .sabri-shell-left-sidebar,
+	.sabri-shell-layout-host > .sabri-shell-right-sidebar {
+		display: none;
+	}
+
+	.sabri-shell-content-column {
+		padding-block-end: calc(72px + env(safe-area-inset-bottom, 0px));
+	}
+
+	.sabri-shell-bottom-nav {
+		position: fixed;
+		z-index: 9990;
+		inset-inline: 0;
+		inset-block-end: 0;
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		padding: 6px max(8px, env(safe-area-inset-left, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-right, 0px));
+		border-block-start: 1px solid var(--sabri-shell-border);
+		background: var(--sabri-shell-surface);
+		box-shadow: 0 -10px 24px rgba(32, 33, 36, 0.12);
+	}
+
+	.sabri-shell-bottom-item {
+		display: grid;
+		place-items: center;
+		gap: 2px;
+		min-block-size: 52px;
+		border-radius: var(--sabri-shell-radius, 8px);
+		color: var(--sabri-shell-muted);
+		font-size: 0.72rem;
+		text-decoration: none;
+	}
+}
+
+@media (max-width: 480px) {
+	.sabri-shell-header-inner {
+		gap: 8px;
+	}
+
+	.sabri-shell-logo {
+		inline-size: 34px;
+		block-size: 34px;
+	}
+
+	.sabri-shell-brand-text {
+		font-size: 0.92rem;
+	}
+
+	.sabri-shell-feed-card {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.sabri-shell-drawer {
+		transition: none;
+	}
+}
