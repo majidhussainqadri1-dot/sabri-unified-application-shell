@@ -20,6 +20,67 @@ final class Layout {
 	const MINIMAL = 'minimal';
 
 	/**
+	 * Fallback selectors for the public content target.
+	 *
+	 * @return array<int,string>
+	 */
+	public static function content_target_fallbacks() {
+		return array(
+			'.wp-site-blocks',
+			'#page',
+			'.site',
+			'main',
+			'#content',
+			'.site-content',
+		);
+	}
+
+	/**
+	 * Return configured selector followed by fallback selectors.
+	 *
+	 * @param array<string,mixed>|null $settings Settings.
+	 * @return array<int,string>
+	 */
+	public static function content_target_candidates( $settings = null ) {
+		if ( null === $settings ) {
+			$settings = Settings::get();
+		}
+
+		$candidates = array();
+		if ( ! empty( $settings['layout']['theme_content_selector'] ) ) {
+			$candidates[] = $settings['layout']['theme_content_selector'];
+		}
+
+		return array_values( array_unique( array_merge( $candidates, self::content_target_fallbacks() ) ) );
+	}
+
+	/**
+	 * Human-readable target resolver summary for System Check.
+	 *
+	 * @param array<string,mixed>|null $settings Settings.
+	 * @return string
+	 */
+	public static function content_target_report( $settings = null ) {
+		if ( null === $settings ) {
+			$settings = Settings::get();
+		}
+
+		if ( ! empty( $settings['layout']['theme_content_selector'] ) ) {
+			return sprintf(
+				/* translators: %s is a CSS selector. */
+				__( 'Configured selector preferred at runtime: %s', 'sabri-unified-application-shell' ),
+				$settings['layout']['theme_content_selector']
+			);
+		}
+
+		return sprintf(
+			/* translators: %s is a comma-separated selector list. */
+			__( 'Runtime fallback order: %s', 'sabri-unified-application-shell' ),
+			implode( ', ', self::content_target_fallbacks() )
+		);
+	}
+
+	/**
 	 * Resolve the current request layout.
 	 *
 	 * @return string

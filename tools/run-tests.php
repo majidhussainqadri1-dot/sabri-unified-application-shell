@@ -85,8 +85,12 @@ function sabri_static_tests() {
 	$home     = sabri_file( 'includes/class-home-feed.php' );
 	$css      = sabri_file( 'assets/css/shell.css' );
 	$js       = sabri_file( 'assets/js/shell.js' );
+	$assets   = sabri_file( 'includes/class-assets.php' );
+	$layout   = sabri_file( 'includes/class-layout.php' );
+	$system   = sabri_file( 'includes/class-system-check.php' );
 	$readme   = sabri_file( 'README.md' );
 	$changelog= sabri_file( 'CHANGELOG.md' );
+	$build    = sabri_file( 'tools/build-release.php' );
 
 	sabri_assert( 'Version consistency', false !== strpos( $main, 'Version: 1.0.0' ) && false !== strpos( $main, "SABRI_SHELL_VERSION', '1.0.0" ) && false !== strpos( $changelog, '1.0.0' ) );
 	sabri_assert( 'Plugin header consistency', false !== strpos( $main, 'Plugin Name: Sabri Unified Application Shell' ) && false !== strpos( $main, 'Text Domain: sabri-unified-application-shell' ) );
@@ -94,7 +98,24 @@ function sabri_static_tests() {
 	sabri_assert( 'No wp_body_open-to-wp_footer wrapper', false === strpos( $renderer, '<main' ) && false === strpos( $renderer, '</main>' ) );
 	sabri_assert( 'No whole-page output buffering', false === strpos( $renderer, 'ob_start' ) && false === strpos( $home, 'ob_start' ) );
 	sabri_assert( 'Exactly one Notifications output marker', 1 === substr_count( $renderer, 'data-sabri-notifications-output' ) );
-	sabri_assert( 'Right Sidebar not always rendered', false !== strpos( $renderer, 'Layout::THREE === $mode' ) );
+	sabri_assert( 'Right Sidebar not always rendered', false !== strpos( $renderer, 'Layout::THREE === $mode' ) && false !== strpos( $renderer, 'right_sidebar_has_modules' ) );
+	sabri_assert( 'Desktop sidebars are not fixed or absolute', 0 === preg_match( '/\.sabri-shell-(?:left|right)-sidebar[^{]*\{[^}]*position:\s*(?:fixed|absolute)/i', $css ) );
+	sabri_assert( 'Three-column mode has real left center right columns', false !== strpos( $css, 'body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready' ) && false !== strpos( $css, 'grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr) var(--sabri-shell-right-width, 340px);' ) );
+	sabri_assert( 'Two-column mode has real left center columns', false !== strpos( $css, 'body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready' ) && false !== strpos( $css, 'grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);' ) );
+	sabri_assert( 'Right Sidebar HTML is absent in two-column mode', false !== strpos( $renderer, '$has_right_sidebar = Layout::THREE === $mode' ) && false !== strpos( $renderer, 'if ( $has_right_sidebar )' ) );
+	sabri_assert( 'Theme content selector is functional', false !== strpos( $assets, "'contentSelector'" ) && false !== strpos( $layout, 'content_target_candidates' ) && false !== strpos( $js, 'resolveContentTarget' ) && false !== strpos( $js, 'assembleStructuralLayout' ) && false !== strpos( $system, 'Content target resolver' ) );
+	sabri_assert( 'Context drawer has a matching trigger', false !== strpos( $renderer, 'data-sabri-drawer-trigger="sabri-shell-drawer-context"' ) && false !== strpos( $renderer, 'aria-controls="sabri-shell-drawer-context"' ) && false !== strpos( $renderer, 'id="sabri-shell-drawer-context"' ) );
+	sabri_assert( 'Context trigger is absent from two-column mode', false !== strpos( $renderer, '$has_right_sidebar = Layout::THREE === $mode' ) && false !== strpos( $renderer, 'data-sabri-open-label="' ) );
+	sabri_assert( 'Sticky Header on/off works', false !== strpos( $renderer, 'sabri-shell-sticky-header' ) && false !== strpos( $renderer, 'sabri-shell-static-header' ) && false !== strpos( $css, '.sabri-shell-static-header .sabri-shell-header' ) );
+	sabri_assert( 'Compact Desktop on/off works', false !== strpos( $renderer, 'sabri-shell-compact-desktop' ) && false !== strpos( $renderer, 'sabri-shell-standard-desktop' ) && false !== strpos( $css, '.sabri-shell-compact-desktop .sabri-shell-layout-host' ) );
+	sabri_assert( 'right_sidebar hide_missing has runtime effect', false !== strpos( $renderer, "right_sidebar']['hide_missing" ) && false !== strpos( $renderer, 'should_render_missing_admin_notice' ) );
+	foreach ( array( 'finder', 'filters', 'doctors', 'appointments', 'emergency', 'whatsapp' ) as $module ) {
+		sabri_assert( 'Clinic module toggle controls output: ' . $module, false !== strpos( $renderer, "\$modules['" . $module . "']" ) && false !== strpos( $renderer, 'clinic-' . $module ) );
+	}
+	foreach ( array( 'profile', 'appointment', 'message', 'contact', 'reviews', 'safety' ) as $module ) {
+		sabri_assert( 'Single-clinic module toggle controls output: ' . $module, false !== strpos( $renderer, "\$modules['" . $module . "']" ) && false !== strpos( $renderer, 'single-' . $module ) );
+	}
+	sabri_assert( 'Development files are absent from release ZIP build', false !== strpos( $build, '$release_allowlist' ) && false !== strpos( $build, '.github/' ) && false !== strpos( $build, 'Development-only path found in release ZIP' ) );
 	sabri_assert( 'Home feed duplicate protection', false !== strpos( $home, 'has_shortcode' ) && false !== strpos( $home, '$auto_inserted' ) );
 	sabri_assert( 'Role-aware Create', false !== strpos( $renderer, "current_user_can( 'edit_posts' )" ) && false !== strpos( $renderer, "allowed_roles" ) );
 	sabri_assert( 'Safe login redirect avoids raw HTTP_HOST', false === strpos( $renderer, 'HTTP_HOST' ) && false !== strpos( $renderer, 'wp_validate_redirect' ) );

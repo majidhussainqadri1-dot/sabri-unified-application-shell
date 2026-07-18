@@ -94,24 +94,34 @@ body.sabri-shell-theme-dark {
 }
 
 .sabri-shell-main-anchor {
-	position: absolute;
-	inset-block-start: calc(var(--sabri-shell-chrome-height) + var(--sabri-shell-admin-bar));
+	display: block;
+	block-size: 0;
+	overflow: hidden;
 }
 
 .sabri-shell-header,
 .sabri-shell-primary-nav {
-	position: sticky;
 	z-index: 9990;
 	background: color-mix(in srgb, var(--sabri-shell-surface) 94%, transparent);
 	backdrop-filter: blur(14px);
 	border-block-end: 1px solid var(--sabri-shell-border);
 }
 
-.sabri-shell-header {
+.sabri-shell-sticky-header .sabri-shell-header,
+.sabri-shell-sticky-header .sabri-shell-primary-nav {
+	position: sticky;
+}
+
+.sabri-shell-static-header .sabri-shell-header,
+.sabri-shell-static-header .sabri-shell-primary-nav {
+	position: static;
+}
+
+.sabri-shell-sticky-header .sabri-shell-header {
 	inset-block-start: var(--sabri-shell-admin-bar);
 }
 
-.sabri-shell-primary-nav {
+.sabri-shell-sticky-header .sabri-shell-primary-nav {
 	inset-block-start: calc(var(--sabri-shell-admin-bar) + var(--sabri-shell-header-height, 64px));
 }
 
@@ -279,12 +289,48 @@ body.sabri-shell-theme-dark {
 	font-weight: 700;
 }
 
+.sabri-shell-layout-host {
+	max-width: var(--sabri-shell-max-width, 1600px);
+	margin-inline: auto;
+	padding: var(--sabri-shell-gap, 24px);
+	gap: var(--sabri-shell-gap, 24px);
+	align-items: start;
+}
+
+.sabri-shell-layout-host.is-ready {
+	display: grid;
+}
+
+body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready {
+	grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);
+}
+
+body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready {
+	grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr) var(--sabri-shell-right-width, 340px);
+}
+
+body.sabri-shell-layout-two.sabri-shell-no-left-sidebar .sabri-shell-layout-host.is-ready,
+body.sabri-shell-layout-three.sabri-shell-no-left-sidebar.sabri-shell-no-right-sidebar .sabri-shell-layout-host.is-ready {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+body.sabri-shell-layout-three.sabri-shell-no-left-sidebar.sabri-shell-has-right-sidebar .sabri-shell-layout-host.is-ready {
+	grid-template-columns: minmax(0, 1fr) var(--sabri-shell-right-width, 340px);
+}
+
+body.sabri-shell-layout-three.sabri-shell-has-left-sidebar.sabri-shell-no-right-sidebar .sabri-shell-layout-host.is-ready {
+	grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);
+}
+
+.sabri-shell-content-column {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .sabri-shell-left-sidebar,
 .sabri-shell-right-sidebar {
-	position: fixed;
-	z-index: 9980;
-	inset-block-start: calc(var(--sabri-shell-admin-bar) + var(--sabri-shell-chrome-height));
-	inset-block-end: 0;
+	z-index: 1;
+	max-block-size: calc(100vh - var(--sabri-shell-admin-bar) - var(--sabri-shell-chrome-height) - var(--sabri-shell-gap, 24px));
 	padding: 14px;
 	background: var(--sabri-shell-surface);
 	border-color: var(--sabri-shell-border);
@@ -292,32 +338,47 @@ body.sabri-shell-theme-dark {
 	overscroll-behavior: contain;
 }
 
+.sabri-shell-layout-host > .sabri-shell-left-sidebar,
+.sabri-shell-layout-host > .sabri-shell-right-sidebar {
+	position: sticky;
+	inset-block-start: calc(var(--sabri-shell-admin-bar) + var(--sabri-shell-chrome-height) + var(--sabri-shell-gap, 24px));
+}
+
+.sabri-shell-static-header .sabri-shell-layout-host > .sabri-shell-left-sidebar,
+.sabri-shell-static-header .sabri-shell-layout-host > .sabri-shell-right-sidebar {
+	inset-block-start: var(--sabri-shell-gap, 24px);
+}
+
 .sabri-shell-left-sidebar {
-	inset-inline-start: 0;
 	inline-size: var(--sabri-shell-left-width, 280px);
 	border-inline-end: 1px solid var(--sabri-shell-border);
 }
 
 .sabri-shell-right-sidebar {
-	inset-inline-end: 0;
 	inline-size: var(--sabri-shell-right-width, 340px);
 	border-inline-start: 1px solid var(--sabri-shell-border);
 }
 
-.sabri-shell-layout-two > :where(.wp-site-blocks, #page, .site, main),
-.sabri-shell-layout-three > :where(.wp-site-blocks, #page, .site, main) {
-	min-width: 0;
-	padding-block-start: 18px;
+.sabri-shell-compact-desktop .sabri-shell-header-inner {
+	min-height: 56px;
 }
 
-.sabri-shell-layout-two > :where(.wp-site-blocks, #page, .site, main) {
-	padding-inline-start: calc(var(--sabri-shell-left-width, 280px) + var(--sabri-shell-gap, 24px));
-	padding-inline-end: var(--sabri-shell-gap, 24px);
+.sabri-shell-compact-desktop .sabri-shell-layout-host {
+	--sabri-shell-gap: max(12px, calc(var(--sabri-shell-gap, 24px) * 0.75));
 }
 
-.sabri-shell-layout-three > :where(.wp-site-blocks, #page, .site, main) {
-	padding-inline-start: calc(var(--sabri-shell-left-width, 280px) + var(--sabri-shell-gap, 24px));
-	padding-inline-end: calc(var(--sabri-shell-right-width, 340px) + var(--sabri-shell-gap, 24px));
+.sabri-shell-context-button {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	min-block-size: 44px;
+	margin: 10px var(--sabri-shell-gap, 24px) 0 auto;
+	padding: 8px 14px;
+	border: 1px solid var(--sabri-shell-border);
+	border-radius: var(--sabri-shell-radius, 8px);
+	background: var(--sabri-shell-surface);
+	color: var(--sabri-shell-text);
+	cursor: pointer;
 }
 
 .sabri-shell-user-card,
@@ -524,12 +585,17 @@ body.sabri-shell-drawer-open {
 }
 
 @media (max-width: 1199px) {
-	.sabri-shell-layout-three > :where(.wp-site-blocks, #page, .site, main) {
-		padding-inline-end: var(--sabri-shell-gap, 24px);
+	body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready,
+	body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready {
+		grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);
 	}
 
-	.sabri-shell-right-sidebar {
+	.sabri-shell-layout-host > .sabri-shell-right-sidebar {
 		display: none;
+	}
+
+	.sabri-shell-context-button {
+		display: inline-flex;
 	}
 }
 
@@ -559,14 +625,21 @@ body.sabri-shell-drawer-open {
 		display: none;
 	}
 
-	.sabri-shell-left-sidebar,
-	.sabri-shell-right-sidebar {
+	.sabri-shell-layout-host {
+		padding: 12px;
+	}
+
+	body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready,
+	body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready {
+		display: block;
+	}
+
+	.sabri-shell-layout-host > .sabri-shell-left-sidebar,
+	.sabri-shell-layout-host > .sabri-shell-right-sidebar {
 		display: none;
 	}
 
-	.sabri-shell-layout-two > :where(.wp-site-blocks, #page, .site, main),
-	.sabri-shell-layout-three > :where(.wp-site-blocks, #page, .site, main) {
-		padding-inline: 12px;
+	.sabri-shell-content-column {
 		padding-block-end: calc(72px + env(safe-area-inset-bottom, 0px));
 	}
 

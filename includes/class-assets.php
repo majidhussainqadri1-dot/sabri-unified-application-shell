@@ -46,8 +46,13 @@ final class Assets {
 			'SabriShell',
 			array(
 				'desktopBreakpoint' => 1024,
+				'rightBreakpoint'   => 1200,
 				'closeLabel'        => __( 'Close menu', 'sabri-unified-application-shell' ),
 				'openLabel'         => __( 'Open menu', 'sabri-unified-application-shell' ),
+				'closeContextLabel' => __( 'Close context panel', 'sabri-unified-application-shell' ),
+				'openContextLabel'  => __( 'Open context panel', 'sabri-unified-application-shell' ),
+				'contentSelector'   => $settings['layout']['theme_content_selector'],
+				'contentCandidates' => Layout::content_target_candidates( $settings ),
 				'appearance'        => $settings['appearance'],
 			)
 		);

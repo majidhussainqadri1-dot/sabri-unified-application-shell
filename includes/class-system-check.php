@@ -37,6 +37,7 @@ final class SystemCheck {
 			self::row( __( 'Home feed source', 'sabri-unified-application-shell' ), ! empty( $settings['home_feed']['auto_insert'] ) ? __( 'Static front page auto insertion enabled', 'sabri-unified-application-shell' ) : __( 'Shortcode only', 'sabri-unified-application-shell' ), 'info' ),
 			self::row( __( 'Duplicate feed protection', 'sabri-unified-application-shell' ), __( 'Shortcode detection and one-time guard enabled', 'sabri-unified-application-shell' ), 'pass' ),
 			self::row( __( 'Current layout', 'sabri-unified-application-shell' ), Layout::current_mode(), 'info' ),
+			self::row( __( 'Content target resolver', 'sabri-unified-application-shell' ), Layout::content_target_report( $settings ), 'info' ),
 			self::row( __( 'Right sidebar eligibility', 'sabri-unified-application-shell' ), Layout::right_sidebar_allowed() ? __( 'Eligible', 'sabri-unified-application-shell' ) : __( 'Not eligible', 'sabri-unified-application-shell' ), 'info' ),
 			self::row( __( 'Notifications integration', 'sabri-unified-application-shell' ), $integrations['notifications'] ? __( 'Detected', 'sabri-unified-application-shell' ) : __( 'Not detected', 'sabri-unified-application-shell' ), $integrations['notifications'] ? 'pass' : 'warn' ),
 			self::row( __( 'Network integration', 'sabri-unified-application-shell' ), $integrations['network'] ? __( 'Detected', 'sabri-unified-application-shell' ) : __( 'Not detected', 'sabri-unified-application-shell' ), $integrations['network'] ? 'pass' : 'warn' ),

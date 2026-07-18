@@ -33,12 +33,19 @@ if ( true !== $zip->open( $zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE 
 	exit( 1 );
 }
 
-$exclude_patterns = array(
-	'#^\.git/#',
-	'#^release/#',
-	'#^node_modules/#',
-	'#^vendor/#',
-	'#^\.DS_Store$#',
+$release_allowlist = array(
+	'sabri-unified-application-shell.php',
+	'includes/',
+	'admin/',
+	'assets/',
+	'languages/',
+	'uninstall.php',
+	'readme.txt',
+	'README.md',
+	'CHANGELOG.md',
+	'MIGRATION.md',
+	'ROLLBACK.md',
+	'STAGING-ACCEPTANCE.md',
 );
 
 $iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
@@ -48,14 +55,15 @@ foreach ( $iterator as $file ) {
 	}
 
 	$relative = str_replace( '\\', '/', substr( $file->getPathname(), strlen( $root ) + 1 ) );
-	$skip     = false;
-	foreach ( $exclude_patterns as $pattern ) {
-		if ( preg_match( $pattern, $relative ) ) {
-			$skip = true;
+	$allowed  = false;
+	foreach ( $release_allowlist as $allowed_path ) {
+		$is_directory = '/' === substr( $allowed_path, -1 );
+		if ( ( $is_directory && 0 === strpos( $relative, $allowed_path ) ) || ( ! $is_directory && $relative === $allowed_path ) ) {
+			$allowed = true;
 			break;
 		}
 	}
-	if ( $skip ) {
+	if ( ! $allowed ) {
 		continue;
 	}
 
@@ -76,11 +84,28 @@ if ( true !== $verify->open( $zip_path, ZipArchive::CHECKCONS ) ) {
 }
 
 $top_levels = array();
+$development_paths = array(
+	'.github/',
+	'tools/',
+	'tests/',
+	'TASK_LOG.md',
+	'.gitignore',
+	'release/',
+	'vendor/',
+	'node_modules/',
+);
 for ( $i = 0; $i < $verify->numFiles; $i++ ) {
 	$name = $verify->getNameIndex( $i );
 	if ( false !== strpos( $name, '../' ) || 0 === strpos( $name, '/' ) ) {
 		fwrite( STDERR, "Path traversal rejected in ZIP: {$name}\n" );
 		exit( 1 );
+	}
+	$inside_plugin = preg_replace( '#^' . preg_quote( $slug, '#' ) . '/#', '', $name );
+	foreach ( $development_paths as $development_path ) {
+		if ( '' !== $development_path && ( $inside_plugin === rtrim( $development_path, '/' ) || 0 === strpos( $inside_plugin, $development_path ) ) ) {
+			fwrite( STDERR, "Development-only path found in release ZIP: {$inside_plugin}\n" );
+			exit( 1 );
+		}
 	}
 	$top_levels[ strtok( $name, '/' ) ] = true;
 }

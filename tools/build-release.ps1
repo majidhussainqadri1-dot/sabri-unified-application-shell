@@ -17,11 +17,25 @@ if (Test-Path -LiteralPath $Release) {
 & "$Root\tools\run-local-static-checks.ps1"
 
 New-Item -ItemType Directory -Force -Path $StagePlugin | Out-Null
-$Items = Get-ChildItem -LiteralPath $Root -Force | Where-Object {
-    $_.Name -notin @(".git", "release", "node_modules", "vendor")
-}
-foreach ($Item in $Items) {
-    Copy-Item -LiteralPath $Item.FullName -Destination $StagePlugin -Recurse -Force
+$AllowList = @(
+    "sabri-unified-application-shell.php",
+    "includes",
+    "admin",
+    "assets",
+    "languages",
+    "uninstall.php",
+    "readme.txt",
+    "README.md",
+    "CHANGELOG.md",
+    "MIGRATION.md",
+    "ROLLBACK.md",
+    "STAGING-ACCEPTANCE.md"
+)
+foreach ($ItemName in $AllowList) {
+    $Source = Join-Path $Root $ItemName
+    if (Test-Path -LiteralPath $Source) {
+        Copy-Item -LiteralPath $Source -Destination $StagePlugin -Recurse -Force
+    }
 }
 
 $ZipPath = Join-Path $Release "$Prefix.zip"
@@ -40,6 +54,12 @@ try {
         $EntryName = $Entry.FullName -replace "\\", "/"
         if ($EntryName -match "(^/|\.\./)") {
             throw "Path traversal rejected in ZIP."
+        }
+        $InsidePlugin = $EntryName -replace "^$Slug/", ""
+        foreach ($DevPath in @(".github/", "tools/", "tests/", "TASK_LOG.md", ".gitignore", "release/", "vendor/", "node_modules/")) {
+            if ($InsidePlugin -eq $DevPath.TrimEnd("/") -or $InsidePlugin.StartsWith($DevPath)) {
+                throw "Development-only path found in release ZIP: $InsidePlugin"
+            }
         }
         $Stream = $Entry.Open()
         try {
@@ -79,6 +99,7 @@ Local PowerShell static checks passed:
 - ZIP CRC/read validation
 - Path traversal rejection
 - Exactly one ZIP top-level directory
+- Development-only files absent from installable ZIP
 - Exact release filenames
 
 ## WordPress Stub Tests
