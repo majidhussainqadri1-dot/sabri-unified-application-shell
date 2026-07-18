@@ -32,19 +32,52 @@ function sabri_file( $path ) {
 
 function sabri_files( $pattern ) {
 	$root = dirname( __DIR__ );
-	return array_values(
-		array_filter(
-			new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) ),
-			static function ( $file ) use ( $pattern, $root ) {
-				$path = str_replace( '\\', '/', substr( $file->getPathname(), strlen( $root ) + 1 ) );
-				if ( false !== strpos( $path, '.git/' ) || false !== strpos( $path, 'release/' ) ) {
-					return false;
-				}
-				return (bool) preg_match( $pattern, $path );
-			}
-		)
+	$files = array();
+	$skip_prefixes = array(
+		'.git/',
+		'release/',
+		'node_modules/',
+		'vendor/',
 	);
+	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
+
+	foreach ( $iterator as $file ) {
+		if ( ! $file instanceof SplFileInfo || ! $file->isFile() ) {
+			continue;
+		}
+
+		$path = sabri_relative_path( $file );
+		foreach ( $skip_prefixes as $prefix ) {
+			if ( 0 === strpos( $path, $prefix ) ) {
+				continue 2;
+			}
+		}
+
+		if ( preg_match( $pattern, $path ) ) {
+			$files[] = $file;
+		}
+	}
+
+	return $files;
 }
+
+function sabri_relative_path( SplFileInfo $file ) {
+	$root = dirname( __DIR__ );
+	return str_replace( '\\', '/', substr( $file->getPathname(), strlen( $root ) + 1 ) );
+}
+
+function sabri_file_helper_tests() {
+	$php_files = sabri_files( '/\.php$/' );
+	$paths     = array_map( 'sabri_relative_path', $php_files );
+
+	sabri_assert( 'sabri_files returns an array', is_array( $php_files ) );
+	sabri_assert( 'sabri_files preserves SplFileInfo values', ! empty( $php_files ) && $php_files[0] instanceof SplFileInfo );
+	sabri_assert( 'sabri_files returns only regular files', count( $php_files ) === count( array_filter( $php_files, static function ( $file ) { return $file instanceof SplFileInfo && $file->isFile(); } ) ) );
+	sabri_assert( 'sabri_files contains expected project files', in_array( 'sabri-unified-application-shell.php', $paths, true ) && in_array( 'tools/run-tests.php', $paths, true ) );
+	sabri_assert( 'sabri_files excludes ignored output paths', 0 === count( array_filter( $paths, static function ( $path ) { return 0 === strpos( $path, '.git/' ) || 0 === strpos( $path, 'release/' ) || 0 === strpos( $path, 'node_modules/' ) || 0 === strpos( $path, 'vendor/' ); } ) ) );
+}
+
+sabri_file_helper_tests();
 
 function sabri_static_tests() {
 	$main     = sabri_file( 'sabri-unified-application-shell.php' );
