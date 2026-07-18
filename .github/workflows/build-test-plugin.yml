@@ -1,0 +1,98 @@
+name: Build and Test Plugin
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - build/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-plugin:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: zip
+          coverage: none
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Lint every PHP file
+        run: |
+          find . -name '*.php' \
+            -not -path './vendor/*' \
+            -not -path './node_modules/*' \
+            -print0 | xargs -0 -n1 php -l
+
+      - name: Check JavaScript syntax
+        run: node --check assets/js/shell.js
+
+      - name: Run WordPress stub/bootstrap tests and static validations
+        run: php tools/run-tests.php --report=release/20-sabri-unified-application-shell-1.0.0-TEST-REPORT.md
+
+      - name: Validate JSON where applicable
+        run: |
+          if find . -name '*.json' -not -path './vendor/*' -not -path './node_modules/*' | grep -q .; then
+            find . -name '*.json' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -r 'json_decode(file_get_contents($argv[1])); if (json_last_error() !== JSON_ERROR_NONE) { fwrite(STDERR, $argv[1] . ": " . json_last_error_msg() . PHP_EOL); exit(1); }'
+          else
+            echo "No JSON files found."
+          fi
+
+      - name: Build release ZIP, SHA-256, and report
+        run: php tools/build-release.php
+
+      - name: Verify exact release filenames
+        run: |
+          test -f release/20-sabri-unified-application-shell-1.0.0.zip
+          test -f release/20-sabri-unified-application-shell-1.0.0.sha256
+          test -f release/20-sabri-unified-application-shell-1.0.0-TEST-REPORT.md
+          test "$(find release -maxdepth 1 -type f | wc -l)" -eq 3
+
+      - name: Verify ZIP CRC, path traversal, and one top-level folder
+        run: |
+          php -r '
+          $zip = new ZipArchive();
+          $path = "release/20-sabri-unified-application-shell-1.0.0.zip";
+          if (true !== $zip->open($path, ZipArchive::CHECKCONS)) {
+              fwrite(STDERR, "ZIP CRC check failed\n");
+              exit(1);
+          }
+          $tops = [];
+          for ($i = 0; $i < $zip->numFiles; $i++) {
+              $name = $zip->getNameIndex($i);
+              if (strpos($name, "../") !== false || strpos($name, "/") === 0) {
+                  fwrite(STDERR, "Path traversal found: {$name}\n");
+                  exit(1);
+              }
+              $tops[strtok($name, "/")] = true;
+          }
+          $zip->close();
+          if (array_keys($tops) !== ["sabri-unified-application-shell"]) {
+              fwrite(STDERR, "ZIP top-level folder mismatch\n");
+              exit(1);
+          }
+          '
+
+      - name: Upload complete release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: sabri-unified-application-shell-1.0.0-release
+          path: |
+            release/20-sabri-unified-application-shell-1.0.0.zip
+            release/20-sabri-unified-application-shell-1.0.0.sha256
+            release/20-sabri-unified-application-shell-1.0.0-TEST-REPORT.md
+          if-no-files-found: error
