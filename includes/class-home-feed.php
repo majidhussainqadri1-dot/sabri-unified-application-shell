@@ -22,6 +22,7 @@ final class HomeFeed {
 		// Official File 20 slots run before File 21's backward-compatible fallback.
 		add_filter( 'the_content', array( __CLASS__, 'render_official_content_slots' ), 5 );
 		add_filter( 'the_content', array( __CLASS__, 'maybe_append_to_front_page' ), 20 );
+		add_filter( 'sabri_shell_rendering_slots', array( __CLASS__, 'advertise_rendering_slots' ) );
 	}
 
 	/** Legacy shortcode callback. */
@@ -29,6 +30,22 @@ final class HomeFeed {
 		$settings = Settings::get();
 		$atts = shortcode_atts( array( 'count' => $settings['home_feed']['posts_count'] ), $atts, 'sabri_shell_home_feed' );
 		return self::render( absint( $atts['count'] ) );
+	}
+
+	/** Machine-readable rendering-slot contract for File 21 diagnostics. */
+	public static function advertise_rendering_slots( $slots ) {
+		$slots = is_array( $slots ) ? $slots : array();
+		$official = array(
+			'sabri_shell_home_before_main' => 'action',
+			'sabri_shell_home_main' => 'action',
+			'sabri_shell_home_after_main' => 'action',
+			'sabri_shell_home_right_sidebar' => 'action',
+			'sabri_shell_news_main' => 'action',
+		);
+		if ( array_is_list( $slots ) ) {
+			$slots = array_fill_keys( array_filter( array_map( 'sanitize_key', $slots ) ), 'action' );
+		}
+		return array_merge( $slots, $official );
 	}
 
 	/**
@@ -53,6 +70,7 @@ final class HomeFeed {
 			echo '<section class="sabri-shell-content-slot sabri-shell-content-slot--home" data-sabri-shell-slot="home-main">';
 			do_action( 'sabri_shell_home_main' );
 			echo '</section>';
+			self::render_home_right_sidebar_slot();
 			do_action( 'sabri_shell_home_after_main' );
 		} else {
 			echo '<section class="sabri-shell-content-slot sabri-shell-content-slot--news" data-sabri-shell-slot="news-main">';
@@ -64,6 +82,25 @@ final class HomeFeed {
 			return $content;
 		}
 		return $content . $slot;
+	}
+
+	/** Render a semantic Home right-sidebar slot only when a provider is attached. */
+	private static function render_home_right_sidebar_slot() {
+		if ( ! function_exists( 'has_action' ) || false === has_action( 'sabri_shell_home_right_sidebar' ) ) {
+			return;
+		}
+		if ( class_exists( __NAMESPACE__ . '\\Layout' ) && ! Layout::right_sidebar_allowed() ) {
+			return;
+		}
+		ob_start();
+		do_action( 'sabri_shell_home_right_sidebar' );
+		$output = (string) ob_get_clean();
+		if ( '' === trim( wp_strip_all_tags( $output ) ) && false === strpos( $output, 'data-sabri-' ) ) {
+			return;
+		}
+		echo '<aside class="sabri-shell-content-slot sabri-shell-content-slot--home-right" aria-label="' . esc_attr__( 'Home context', 'sabri-unified-application-shell' ) . '" data-sabri-shell-slot="home-right-sidebar">';
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Providers own escaped slot output.
+		echo '</aside>';
 	}
 
 	/** Append the legacy Shell Latest Feed only when no official provider is attached. */
