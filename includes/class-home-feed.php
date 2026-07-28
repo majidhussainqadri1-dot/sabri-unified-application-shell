@@ -42,64 +42,74 @@ final class HomeFeed {
 			'sabri_shell_home_right_sidebar' => 'action',
 			'sabri_shell_news_main' => 'action',
 		);
-		if ( array_is_list( $slots ) ) {
+		if ( self::is_list_array( $slots ) ) {
 			$slots = array_fill_keys( array_filter( array_map( 'sanitize_key', $slots ) ), 'action' );
 		}
 		return array_merge( $slots, $official );
 	}
 
 	/**
-	 * Render versioned Home/News slots into the theme's main content stream.
+	 * Emit versioned Home/News slots while WordPress resolves the main content.
 	 *
-	 * File 20 owns placement. File 21 and later modules own the content emitted
-	 * into these actions. The original database page content is never mutated.
+	 * File 20 owns placement. File 21 owns the content emitted by the actions.
+	 * No output buffer or database Page mutation is used. The normal Page content
+	 * is returned unchanged after providers render their controlled surfaces.
 	 */
 	public static function render_official_content_slots( $content ) {
 		if ( self::$official_slots_rendered || ! is_string( $content ) || ! self::is_main_public_content_request() ) {
 			return $content;
 		}
+
 		$is_home_context = function_exists( 'is_front_page' ) && is_front_page();
 		$is_news_context = self::is_news_context();
 		if ( ! $is_home_context && ! $is_news_context ) {
 			return $content;
 		}
-		self::$official_slots_rendered = true;
-		ob_start();
+
 		if ( $is_home_context ) {
-			do_action( 'sabri_shell_home_before_main' );
-			echo '<section class="sabri-shell-content-slot sabri-shell-content-slot--home" data-sabri-shell-slot="home-main">';
-			do_action( 'sabri_shell_home_main' );
-			echo '</section>';
-			self::render_home_right_sidebar_slot();
-			do_action( 'sabri_shell_home_after_main' );
-		} else {
-			echo '<section class="sabri-shell-content-slot sabri-shell-content-slot--news" data-sabri-shell-slot="news-main">';
-			do_action( 'sabri_shell_news_main' );
-			echo '</section>';
-		}
-		$slot = (string) ob_get_clean();
-		if ( '' === trim( wp_strip_all_tags( $slot ) ) && false === strpos( $slot, 'data-sabri-' ) ) {
+			$has_before = self::provider_attached( 'sabri_shell_home_before_main' );
+			$has_main = self::provider_attached( 'sabri_shell_home_main' );
+			$has_after = self::provider_attached( 'sabri_shell_home_after_main' );
+			$has_right = self::provider_attached( 'sabri_shell_home_right_sidebar' ) && Layout::right_sidebar_allowed();
+			if ( ! $has_before && ! $has_main && ! $has_after && ! $has_right ) {
+				return $content;
+			}
+
+			self::$official_slots_rendered = true;
+			if ( $has_before ) {
+				do_action( 'sabri_shell_home_before_main' );
+			}
+			if ( $has_main ) {
+				echo '<section class="sabri-shell-content-slot sabri-shell-content-slot--home" data-sabri-shell-slot="home-main">';
+				do_action( 'sabri_shell_home_main' );
+				echo '</section>';
+			}
+			if ( $has_right ) {
+				self::render_home_right_sidebar_slot();
+			}
+			if ( $has_after ) {
+				do_action( 'sabri_shell_home_after_main' );
+			}
 			return $content;
 		}
-		return $content . $slot;
+
+		if ( ! self::provider_attached( 'sabri_shell_news_main' ) ) {
+			return $content;
+		}
+		self::$official_slots_rendered = true;
+		echo '<section class="sabri-shell-content-slot sabri-shell-content-slot--news" data-sabri-shell-slot="news-main">';
+		do_action( 'sabri_shell_news_main' );
+		echo '</section>';
+		return $content;
 	}
 
-	/** Render a semantic Home right-sidebar slot only when a provider is attached. */
+	/** Render the Home right-sidebar slot only when a provider is attached. */
 	private static function render_home_right_sidebar_slot() {
-		if ( ! function_exists( 'has_action' ) || false === has_action( 'sabri_shell_home_right_sidebar' ) ) {
-			return;
-		}
-		if ( class_exists( __NAMESPACE__ . '\\Layout' ) && ! Layout::right_sidebar_allowed() ) {
-			return;
-		}
-		ob_start();
-		do_action( 'sabri_shell_home_right_sidebar' );
-		$output = (string) ob_get_clean();
-		if ( '' === trim( wp_strip_all_tags( $output ) ) && false === strpos( $output, 'data-sabri-' ) ) {
+		if ( ! self::provider_attached( 'sabri_shell_home_right_sidebar' ) || ! Layout::right_sidebar_allowed() ) {
 			return;
 		}
 		echo '<aside class="sabri-shell-content-slot sabri-shell-content-slot--home-right" aria-label="' . esc_attr__( 'Home context', 'sabri-unified-application-shell' ) . '" data-sabri-shell-slot="home-right-sidebar">';
-		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Providers own escaped slot output.
+		do_action( 'sabri_shell_home_right_sidebar' );
 		echo '</aside>';
 	}
 
@@ -173,7 +183,7 @@ final class HomeFeed {
 
 	/** Whether an external canonical Home provider is attached. */
 	public static function official_home_provider_attached() {
-		return function_exists( 'has_action' ) && false !== has_action( 'sabri_shell_home_main' );
+		return self::provider_attached( 'sabri_shell_home_main' );
 	}
 
 	/** Reset request guards for integration tests. */
@@ -205,8 +215,28 @@ final class HomeFeed {
 			$is_news = true;
 		} elseif ( function_exists( 'get_query_var' ) && get_query_var( 'sabri_news_route' ) ) {
 			$is_news = true;
+		} elseif ( function_exists( 'is_page' ) && ( is_page( 'news' ) || is_page( 'sabri-news' ) ) ) {
+			$is_news = true;
 		}
 		return (bool) apply_filters( 'sabri_shell_is_news_context', $is_news );
+	}
+
+	/** Whether at least one callback owns a rendering action. */
+	private static function provider_attached( $hook ) {
+		return function_exists( 'has_action' ) && false !== has_action( $hook );
+	}
+
+	/** PHP 7.4-compatible list-array check. */
+	private static function is_list_array( array $items ) {
+		$expected = 0;
+		foreach ( $items as $key => $unused ) {
+			unset( $unused );
+			if ( $key !== $expected ) {
+				return false;
+			}
+			$expected++;
+		}
+		return true;
 	}
 
 	/** Render one legacy Feed card. */
