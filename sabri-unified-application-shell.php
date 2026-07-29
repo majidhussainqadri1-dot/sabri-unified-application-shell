@@ -3,7 +3,7 @@
  * Plugin Name: Sabri Unified Application Shell
  * Plugin URI: https://github.com/majidhussainqadri1-dot/sabri-unified-application-shell
  * Description: Secure responsive public application shell for the Sabri Social Homeopathy Platform.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Dr. Allama Majid Hussain Sabri
  * Text Domain: sabri-unified-application-shell
  * Domain Path: /languages
@@ -17,7 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SABRI_SHELL_VERSION', '1.0.0' );
+define( 'SABRI_SHELL_VERSION', '1.0.1' );
+define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.0' );
 define( 'SABRI_SHELL_FILE', __FILE__ );
 define( 'SABRI_SHELL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SABRI_SHELL_URL', plugin_dir_url( __FILE__ ) );
@@ -54,6 +55,24 @@ spl_autoload_register(
 		}
 	}
 );
+
+/** Whether the exact File 22 Create producer contract is loaded and safe. */
+if ( ! function_exists( 'sabri_shell_create_contract_available' ) ) {
+	function sabri_shell_create_contract_available() {
+		return defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' )
+			&& version_compare( (string) SABRI_SHELL_CREATE_CONTRACT_VERSION, '1.0.0', '>=' )
+			&& class_exists( 'Sabri\\UnifiedShell\\CreateVisibility' )
+			&& Sabri\UnifiedShell\CreateVisibility::contract_available();
+	}
+}
+
+/** Whether the current user has a visible, enabled Header Create gateway. */
+if ( ! function_exists( 'sabri_shell_create_visible_for_current_user' ) ) {
+	function sabri_shell_create_visible_for_current_user() {
+		return sabri_shell_create_contract_available()
+			&& Sabri\UnifiedShell\CreateVisibility::visible_for_current_user();
+	}
+}
 
 register_activation_hook( __FILE__, array( 'Sabri\\UnifiedShell\\Plugin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'Sabri\\UnifiedShell\\Plugin', 'deactivate' ) );
