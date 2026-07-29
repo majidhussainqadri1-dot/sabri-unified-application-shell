@@ -28,7 +28,7 @@ final class CreateVisibility {
 
 		if ( function_exists( 'add_filter' ) ) {
 			add_filter( 'option_' . Defaults::OPTION_NAME, array( __CLASS__, 'filter_runtime_settings' ), 100, 2 );
-			add_filter( 'sabri_shell_create_url', array( __CLASS__, 'filter_create_url' ), 1000, 1 );
+			add_filter( 'sabri_shell_create_url', array( __CLASS__, 'filter_create_url' ), PHP_INT_MAX, 1 );
 		}
 	}
 
