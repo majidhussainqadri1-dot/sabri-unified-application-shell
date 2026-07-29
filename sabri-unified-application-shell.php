@@ -29,11 +29,13 @@ $create_contract_unclaimed = ! function_exists( 'sabri_shell_create_contract_ava
 $create_markers_unclaimed = ! defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' )
 	&& ! defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' )
 	&& ! defined( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' );
+$sabri_shell_create_contract_owned_here = false;
 
 if ( $create_contract_unclaimed && $create_markers_unclaimed ) {
 	define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.1' );
 	define( 'SABRI_SHELL_CREATE_CONTRACT_OWNER', SABRI_SHELL_SLUG );
 	define( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED', true );
+	$sabri_shell_create_contract_owned_here = true;
 } else {
 	if ( ! defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' ) ) {
 		define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '0.0.0' );
@@ -75,7 +77,7 @@ spl_autoload_register(
 );
 
 /** Whether the exact File 22 Create producer contract is loaded and safe. */
-if ( true === SABRI_SHELL_CREATE_FUNCTIONS_OWNED ) {
+if ( $sabri_shell_create_contract_owned_here ) {
 	function sabri_shell_create_contract_available() {
 		return defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' )
 			&& '1.0.1' === (string) SABRI_SHELL_CREATE_CONTRACT_VERSION
