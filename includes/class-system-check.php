@@ -21,10 +21,16 @@ final class SystemCheck {
 	 * @return array<int,array<string,string>>
 	 */
 	public static function report() {
-		$settings     = Settings::get();
-		$integrations = Integrations::detect();
-		$nav          = Navigation::resolved();
-		$theme        = wp_get_theme();
+		$settings           = Settings::get();
+		$integrations       = Integrations::detect();
+		$nav                = Navigation::resolved();
+		$theme              = wp_get_theme();
+		$contract_owner     = defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' ) ? (string) SABRI_SHELL_CREATE_CONTRACT_OWNER : '';
+		$functions_owned    = defined( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' ) && true === SABRI_SHELL_CREATE_FUNCTIONS_OWNED;
+		$producer_functions = function_exists( 'sabri_shell_create_contract_available' ) && function_exists( 'sabri_shell_create_visible_for_current_user' );
+		$contract_ready     = $functions_owned && $producer_functions && 'sabri-unified-application-shell' === $contract_owner && CreateVisibility::contract_available();
+		$current_visible    = $contract_ready && sabri_shell_create_visible_for_current_user();
+		$current_url        = $current_visible ? CreateVisibility::create_url() : '';
 
 		$rows = array(
 			self::row( __( 'Plugin', 'sabri-unified-application-shell' ), 'Sabri Unified Application Shell ' . SABRI_SHELL_VERSION, 'pass' ),
@@ -54,6 +60,12 @@ final class SystemCheck {
 			self::row( __( 'Activation snapshot', 'sabri-unified-application-shell' ), get_option( Defaults::SNAPSHOT_OPTION_NAME, false ) ? __( 'Captured', 'sabri-unified-application-shell' ) : __( 'Not captured yet', 'sabri-unified-application-shell' ), get_option( Defaults::SNAPSHOT_OPTION_NAME, false ) ? 'pass' : 'warn' ),
 			self::row( __( 'Emergency disable', 'sabri-unified-application-shell' ), ! empty( $settings['emergency_disabled'] ) ? __( 'Enabled', 'sabri-unified-application-shell' ) : __( 'Off', 'sabri-unified-application-shell' ), ! empty( $settings['emergency_disabled'] ) ? 'warn' : 'pass' ),
 			self::row( __( 'Constant kill switch', 'sabri-unified-application-shell' ), SafeMode::constant_disabled() ? __( 'Enabled', 'sabri-unified-application-shell' ) : __( 'Off', 'sabri-unified-application-shell' ), SafeMode::constant_disabled() ? 'warn' : 'pass' ),
+			self::row( __( 'Create contract version', 'sabri-unified-application-shell' ), defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' ) ? (string) SABRI_SHELL_CREATE_CONTRACT_VERSION : __( 'Missing', 'sabri-unified-application-shell' ), defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' ) && '1.0.1' === (string) SABRI_SHELL_CREATE_CONTRACT_VERSION ? 'pass' : 'fail' ),
+			self::row( __( 'Create contract ownership', 'sabri-unified-application-shell' ), $functions_owned ? $contract_owner : __( 'Collision or foreign producer detected', 'sabri-unified-application-shell' ), $functions_owned && 'sabri-unified-application-shell' === $contract_owner ? 'pass' : 'fail' ),
+			self::row( __( 'Create producer functions', 'sabri-unified-application-shell' ), $producer_functions ? __( 'Available', 'sabri-unified-application-shell' ) : __( 'Missing', 'sabri-unified-application-shell' ), $producer_functions ? 'pass' : 'fail' ),
+			self::row( __( 'Create contract readiness', 'sabri-unified-application-shell' ), $contract_ready ? __( 'Ready', 'sabri-unified-application-shell' ) : __( 'Closed', 'sabri-unified-application-shell' ), $contract_ready ? 'pass' : 'warn' ),
+			self::row( __( 'Current-user Create visibility', 'sabri-unified-application-shell' ), $current_visible ? __( 'Visible', 'sabri-unified-application-shell' ) : __( 'Not visible', 'sabri-unified-application-shell' ), 'info' ),
+			self::row( __( 'Current Create URL', 'sabri-unified-application-shell' ), '' !== $current_url ? $current_url : __( 'Unavailable or rejected by same-origin HTTPS validation', 'sabri-unified-application-shell' ), $current_visible && '' === $current_url ? 'fail' : ( '' !== $current_url ? 'pass' : 'info' ) ),
 			self::row( __( 'CSS asset', 'sabri-unified-application-shell' ), file_exists( SABRI_SHELL_PATH . 'assets/css/shell.css' ) ? __( 'Present', 'sabri-unified-application-shell' ) : __( 'Missing', 'sabri-unified-application-shell' ), file_exists( SABRI_SHELL_PATH . 'assets/css/shell.css' ) ? 'pass' : 'fail' ),
 			self::row( __( 'JavaScript asset', 'sabri-unified-application-shell' ), file_exists( SABRI_SHELL_PATH . 'assets/js/shell.js' ) ? __( 'Present', 'sabri-unified-application-shell' ) : __( 'Missing', 'sabri-unified-application-shell' ), file_exists( SABRI_SHELL_PATH . 'assets/js/shell.js' ) ? 'pass' : 'fail' ),
 			self::row( __( 'Duplicate shell detection', 'sabri-unified-application-shell' ), self::duplicate_shell_plugins(), 'info' ),
