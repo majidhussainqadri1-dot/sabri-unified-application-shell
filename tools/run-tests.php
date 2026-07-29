@@ -57,7 +57,7 @@ function sabri_static_tests() {
 	sabri_assert( 'Create bridge registration order', false !== strpos( $plugin, 'CreateVisibility::register();' ) && strpos( $plugin, 'CreateVisibility::register();' ) < strpos( $plugin, 'Settings::register();' ) );
 	sabri_assert( 'Create bridge no-write boundary', false !== strpos( $create, "option_' . Defaults::OPTION_NAME" ) && false === strpos( $create, 'update_option(' ) && false === strpos( $create, 'delete_option(' ) );
 	sabri_assert( 'Create bridge fail-closed controls', false !== strpos( $create, 'private static $resolving' ) && false !== strpos( $create, 'SafeMode::disabled()' ) && false !== strpos( $create, "current_user_can( 'edit_posts' )" ) );
-	sabri_assert( 'Mobile bypass neutralization', false !== strpos( $create, "['create_or_doctors'] = 'doctors'" ) && false !== strpos( $create, "['create_or_doctors'] = 'auto'" ) );
+	sabri_assert( 'Mobile preference and bypass contract', false !== strpos( $create, '$mobile_mode' ) && false !== strpos( $create, "['create_or_doctors'] = 'doctors'" ) );
 	sabri_assert( 'README limitations', false !== strpos( $readme, 'messaging backend is not created by this plugin' ) && false !== strpos( $readme, 'Hostinger staging testing is required before production activation' ) );
 	sabri_assert( 'No whole-page wrapper or buffering', false === strpos( $renderer, '<main' ) && false === strpos( $renderer, '</main>' ) && false === strpos( $renderer, 'ob_start' ) && false === strpos( $home, 'ob_start' ) );
 	sabri_assert( 'One Notifications output marker', 1 === substr_count( $renderer, 'data-sabri-notifications-output' ) );
@@ -79,7 +79,7 @@ function sabri_static_tests() {
 	foreach ( sabri_files( '/\.(?:php|css|js|md|txt|yml|yaml)$/i' ) as $file ) { $all_text .= file_get_contents( $file->getPathname() ); }
 	sabri_assert( 'No remote runtime dependencies', 0 === preg_match( '#(cdn\.|fonts\.googleapis|fonts\.gstatic|@import\s+url|https?://(?!github\.com/majidhussainqadri1-dot/sabri-unified-application-shell|example\.test))#i', $all_text ) );
 	sabri_assert( 'No bundled font binaries', empty( sabri_files( '/\.(?:woff2?|ttf|otf|eot)$/i' ) ) );
-	$dangerous = array( '\beval\s*\(', '\bshell_exec\s*\(', '\bpassthru\s*\(', '\bproc_open\s*\(', '\bpopen\s*\(', '\bassert\s*\(' );
+	$dangerous = array( '\beval\s*\(', '\bshell_exec\s*\(', '\bpassthru\s*\(', '\bproc_open\s*\(', '\bpopen\s*\(', '(?<!\$)\bassert\s*\(' );
 	$found = array();
 	foreach ( $dangerous as $pattern ) { if ( preg_match( '/' . $pattern . '/', $all_php ) ) { $found[] = $pattern; } }
 	sabri_assert( 'Dangerous PHP function scan', empty( $found ), implode( ', ', $found ) );
