@@ -44,7 +44,9 @@ final class CreateVisibility {
 	}
 
 	/**
-	 * Whether the current page can display the enabled desktop Create gateway.
+	 * Whether the current subject can display the enabled Create gateway. This
+	 * method resolves the central filter directly so wp-admin System Check is not
+	 * limited to the historical configured-role list.
 	 *
 	 * @return bool
 	 */
@@ -53,12 +55,7 @@ final class CreateVisibility {
 			return false;
 		}
 
-		$settings = Settings::get();
-		if ( empty( $settings['header']['enabled'] ) || empty( $settings['header']['create'] ) ) {
-			return false;
-		}
-
-		return self::legacy_renderer_allows_current_user( $settings );
+		return self::resolve_final_authorization( Settings::get() );
 	}
 
 	/**
