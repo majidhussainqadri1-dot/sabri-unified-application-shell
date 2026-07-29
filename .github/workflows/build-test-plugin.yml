@@ -15,11 +15,21 @@ permissions:
 jobs:
   build-test-plugin:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
-      - name: Check out repository
+      - name: Check out exact source head
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -59,7 +69,20 @@ jobs:
           fi
 
       - name: Build candidate ZIP, SHA-256, and report
+        env:
+          SOURCE_DATE_EPOCH: 1785283200
         run: php tools/build-release.php
+
+      - name: Verify reproducible candidate bytes
+        env:
+          SOURCE_DATE_EPOCH: 1785283200
+        run: |
+          set -euo pipefail
+          cp release/20-sabri-unified-application-shell-1.0.1.zip /tmp/file20-first.zip
+          cp release/20-sabri-unified-application-shell-1.0.1.sha256 /tmp/file20-first.sha256
+          php tools/build-release.php
+          cmp /tmp/file20-first.zip release/20-sabri-unified-application-shell-1.0.1.zip
+          cmp /tmp/file20-first.sha256 release/20-sabri-unified-application-shell-1.0.1.sha256
 
       - name: Verify exact candidate filenames
         run: |
@@ -102,3 +125,36 @@ jobs:
             release/20-sabri-unified-application-shell-1.0.1.sha256
             release/20-sabri-unified-application-shell-1.0.1-TEST-REPORT.md
           if-no-files-found: error
+
+  php74-production-compatibility:
+    name: PHP 7.4 production package compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out exact source head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+
+      - name: Set up PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "7.4"
+          coverage: none
+
+      - name: Lint every production PHP file shipped in the plugin
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l sabri-unified-application-shell.php
+          php -l uninstall.php
+          find includes admin -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
