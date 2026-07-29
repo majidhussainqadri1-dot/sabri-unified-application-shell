@@ -28,12 +28,19 @@ final class CreateVisibility {
 
 		if ( function_exists( 'add_filter' ) ) {
 			add_filter( 'option_' . Defaults::OPTION_NAME, array( __CLASS__, 'filter_runtime_settings' ), 100, 2 );
+			add_filter( 'sabri_shell_create_url', array( __CLASS__, 'filter_create_url' ), 1000, 1 );
 		}
 	}
 
 	/** Whether the versioned producer is loaded and its kill switches are clear. */
 	public static function contract_available() {
-		return ! SafeMode::disabled();
+		return defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' )
+			&& '1.0.1' === (string) SABRI_SHELL_CREATE_CONTRACT_VERSION
+			&& defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' )
+			&& defined( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' )
+			&& 'sabri-unified-application-shell' === (string) SABRI_SHELL_CREATE_CONTRACT_OWNER
+			&& true === SABRI_SHELL_CREATE_FUNCTIONS_OWNED
+			&& ! SafeMode::disabled();
 	}
 
 	/**
@@ -52,6 +59,38 @@ final class CreateVisibility {
 		}
 
 		return self::legacy_renderer_allows_current_user( $settings );
+	}
+
+	/**
+	 * Return the final same-origin HTTPS Create URL for the current authorized
+	 * subject. A malformed, cross-origin, downgraded, credential-bearing, or
+	 * unavailable URL fails closed.
+	 *
+	 * @return string
+	 */
+	public static function create_url() {
+		if ( ! self::visible_for_current_user() || ! function_exists( 'admin_url' ) || ! function_exists( 'apply_filters' ) ) {
+			return '';
+		}
+
+		$candidate = apply_filters( 'sabri_shell_create_url', admin_url( 'post-new.php' ) );
+		return self::same_origin_https_url( $candidate );
+	}
+
+	/**
+	 * Final URL filter used by the historical Renderer. Unsafe filtered values
+	 * are rejected and replaced only with the validated native admin fallback.
+	 *
+	 * @param mixed $candidate Filtered URL.
+	 * @return string
+	 */
+	public static function filter_create_url( $candidate ) {
+		$validated = self::same_origin_https_url( $candidate );
+		if ( '' !== $validated ) {
+			return $validated;
+		}
+
+		return function_exists( 'admin_url' ) ? self::same_origin_https_url( admin_url( 'post-new.php' ) ) : '';
 	}
 
 	/**
@@ -105,6 +144,9 @@ final class CreateVisibility {
 
 	/** Resolve the non-persistent, centrally extensible authorization decision. */
 	private static function resolve_final_authorization( array $settings ) {
+		if ( empty( $settings['header']['enabled'] ) || empty( $settings['header']['create'] ) ) {
+			return false;
+		}
 		if ( ! function_exists( 'is_user_logged_in' ) || ! is_user_logged_in() || SafeMode::disabled() ) {
 			return false;
 		}
@@ -135,6 +177,44 @@ final class CreateVisibility {
 		$allowed_roles = isset( $settings['header']['allowed_roles'] ) && is_array( $settings['header']['allowed_roles'] ) ? $settings['header']['allowed_roles'] : array();
 		$allowed_roles = array_values( array_filter( array_map( 'sanitize_key', $allowed_roles ) ) );
 		return (bool) array_intersect( self::current_roles(), $allowed_roles );
+	}
+
+	/**
+	 * Validate the final Create destination against the current site origin.
+	 *
+	 * @param mixed $candidate Filtered URL candidate.
+	 * @return string
+	 */
+	private static function same_origin_https_url( $candidate ) {
+		if ( ! is_string( $candidate ) || '' === trim( $candidate ) || ! function_exists( 'home_url' ) || ! function_exists( 'wp_parse_url' ) || ! function_exists( 'wp_validate_redirect' ) ) {
+			return '';
+		}
+
+		$validated = wp_validate_redirect( trim( $candidate ), '' );
+		if ( ! is_string( $validated ) || '' === $validated ) {
+			return '';
+		}
+
+		$home   = wp_parse_url( home_url( '/' ) );
+		$target = wp_parse_url( $validated );
+		if ( ! is_array( $home ) || ! is_array( $target ) || empty( $home['host'] ) || empty( $target['host'] ) || empty( $target['scheme'] ) ) {
+			return '';
+		}
+		if ( 'https' !== strtolower( (string) $target['scheme'] ) || strtolower( (string) $home['host'] ) !== strtolower( (string) $target['host'] ) ) {
+			return '';
+		}
+		if ( ! empty( $target['user'] ) || ! empty( $target['pass'] ) ) {
+			return '';
+		}
+
+		$home_scheme = isset( $home['scheme'] ) ? strtolower( (string) $home['scheme'] ) : 'https';
+		$home_port   = isset( $home['port'] ) ? (int) $home['port'] : ( 'https' === $home_scheme ? 443 : 80 );
+		$target_port = isset( $target['port'] ) ? (int) $target['port'] : 443;
+		if ( $home_port !== $target_port ) {
+			return '';
+		}
+
+		return function_exists( 'esc_url_raw' ) ? (string) esc_url_raw( $validated, array( 'https' ) ) : $validated;
 	}
 
 	/** @return array<int,string> */
