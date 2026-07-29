@@ -84,9 +84,12 @@ final class CreateVisibility {
 			}
 
 			$allowed_roles = isset( $settings['header']['allowed_roles'] ) && is_array( $settings['header']['allowed_roles'] ) ? $settings['header']['allowed_roles'] : array();
+			$mobile_mode   = isset( $settings['mobile']['create_or_doctors'] ) ? sanitize_key( (string) $settings['mobile']['create_or_doctors'] ) : 'auto';
+			$mobile_mode   = in_array( $mobile_mode, array( 'create', 'auto', 'doctors' ), true ) ? $mobile_mode : 'auto';
+
 			if ( $allowed ) {
 				$allowed_roles = array_values( array_unique( array_merge( $allowed_roles, $roles ) ) );
-				$value['mobile']['create_or_doctors'] = 'auto';
+				$value['mobile']['create_or_doctors'] = $mobile_mode;
 			} else {
 				$allowed_roles = array_values( array_diff( $allowed_roles, $roles ) );
 				$value['mobile']['create_or_doctors'] = 'doctors';
@@ -102,6 +105,9 @@ final class CreateVisibility {
 	/** Resolve the non-persistent, centrally extensible authorization decision. */
 	private static function resolve_final_authorization( array $settings ) {
 		if ( ! function_exists( 'is_user_logged_in' ) || ! is_user_logged_in() || SafeMode::disabled() ) {
+			return false;
+		}
+		if ( ! function_exists( 'current_user_can' ) || ! current_user_can( 'edit_posts' ) ) {
 			return false;
 		}
 
