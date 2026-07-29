@@ -8,6 +8,14 @@ on:
       - 'patches/file20-complete-1.0.1-create-producer.patch'
       - 'tests/run-file20-create-producer-tests.php'
       - '.github/workflows/apply-file20-complete-1.0.1.yml'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'patches/file20-complete-1.0.1-create-producer.patch'
+      - 'tests/run-file20-create-producer-tests.php'
+      - '.github/workflows/apply-file20-complete-1.0.1.yml'
   workflow_dispatch:
 
 permissions:
