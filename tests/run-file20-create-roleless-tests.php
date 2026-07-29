@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 namespace {
 	define( 'ABSPATH', __DIR__ . '/' );
+	define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.1' );
+	define( 'SABRI_SHELL_CREATE_CONTRACT_OWNER', 'sabri-unified-application-shell' );
+	define( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED', true );
 	$GLOBALS['f20_roleless_filter_calls'] = 0;
 
 	function __( $text, $domain = '' ) { unset( $domain ); return $text; }
@@ -13,12 +16,11 @@ namespace {
 	function current_user_can( $capability ) { return 'edit_posts' === $capability; }
 	function wp_get_current_user() { return (object) array( 'ID' => 44, 'roles' => array() ); }
 	function apply_filters( $hook, $value ) {
-		unset( $value );
 		if ( 'sabri_shell_can_show_create' === $hook ) {
 			$GLOBALS['f20_roleless_filter_calls']++;
 			return true;
 		}
-		return false;
+		return $value;
 	}
 }
 
