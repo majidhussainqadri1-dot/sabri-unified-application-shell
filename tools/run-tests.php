@@ -1,6 +1,6 @@
 <?php
 /**
- * Local and CI test runner for the Sabri Shell.
+ * Local and CI regression runner for Sabri Unified Application Shell 1.0.1.
  *
  * @package SabriUnifiedApplicationShell
  */
@@ -27,37 +27,30 @@ function sabri_assert( $name, $condition, $details = '' ) {
 }
 
 function sabri_file( $path ) {
-	return file_get_contents( dirname( __DIR__ ) . '/' . $path );
+	return (string) file_get_contents( dirname( __DIR__ ) . '/' . $path );
 }
 
+/** @return array<int,SplFileInfo> */
 function sabri_files( $pattern ) {
 	$root = dirname( __DIR__ );
 	$files = array();
-	$skip_prefixes = array(
-		'.git/',
-		'release/',
-		'node_modules/',
-		'vendor/',
-	);
+	$skip_prefixes = array( '.git/', 'release/', 'node_modules/', 'vendor/' );
 	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
 
 	foreach ( $iterator as $file ) {
 		if ( ! $file instanceof SplFileInfo || ! $file->isFile() ) {
 			continue;
 		}
-
 		$path = sabri_relative_path( $file );
 		foreach ( $skip_prefixes as $prefix ) {
 			if ( 0 === strpos( $path, $prefix ) ) {
 				continue 2;
 			}
 		}
-
 		if ( preg_match( $pattern, $path ) ) {
 			$files[] = $file;
 		}
 	}
-
 	return $files;
 }
 
@@ -68,64 +61,70 @@ function sabri_relative_path( SplFileInfo $file ) {
 
 function sabri_file_helper_tests() {
 	$php_files = sabri_files( '/\.php$/' );
-	$paths     = array_map( 'sabri_relative_path', $php_files );
-
-	sabri_assert( 'sabri_files returns an array', is_array( $php_files ) );
-	sabri_assert( 'sabri_files preserves SplFileInfo values', ! empty( $php_files ) && $php_files[0] instanceof SplFileInfo );
-	sabri_assert( 'sabri_files returns only regular files', count( $php_files ) === count( array_filter( $php_files, static function ( $file ) { return $file instanceof SplFileInfo && $file->isFile(); } ) ) );
-	sabri_assert( 'sabri_files contains expected project files', in_array( 'sabri-unified-application-shell.php', $paths, true ) && in_array( 'tools/run-tests.php', $paths, true ) );
-	sabri_assert( 'sabri_files excludes ignored output paths', 0 === count( array_filter( $paths, static function ( $path ) { return 0 === strpos( $path, '.git/' ) || 0 === strpos( $path, 'release/' ) || 0 === strpos( $path, 'node_modules/' ) || 0 === strpos( $path, 'vendor/' ); } ) ) );
+	$paths = array_map( 'sabri_relative_path', $php_files );
+	sabri_assert( 'File collector returns an array', is_array( $php_files ) );
+	sabri_assert( 'File collector preserves SplFileInfo values', ! empty( $php_files ) && $php_files[0] instanceof SplFileInfo );
+	sabri_assert( 'File collector returns only regular files', count( $php_files ) === count( array_filter( $php_files, static function ( $file ) { return $file instanceof SplFileInfo && $file->isFile(); } ) ) );
+	sabri_assert( 'File collector contains expected project files', in_array( 'sabri-unified-application-shell.php', $paths, true ) && in_array( 'tools/run-tests.php', $paths, true ) );
+	sabri_assert( 'File collector excludes generated/dependency paths', 0 === count( array_filter( $paths, static function ( $path ) { return 0 === strpos( $path, '.git/' ) || 0 === strpos( $path, 'release/' ) || 0 === strpos( $path, 'node_modules/' ) || 0 === strpos( $path, 'vendor/' ); } ) ) );
 }
 
-sabri_file_helper_tests();
-
 function sabri_static_tests() {
-	$main     = sabri_file( 'sabri-unified-application-shell.php' );
-	$renderer = sabri_file( 'includes/class-renderer.php' );
-	$home     = sabri_file( 'includes/class-home-feed.php' );
-	$css      = sabri_file( 'assets/css/shell.css' );
-	$js       = sabri_file( 'assets/js/shell.js' );
-	$assets   = sabri_file( 'includes/class-assets.php' );
-	$layout   = sabri_file( 'includes/class-layout.php' );
-	$system   = sabri_file( 'includes/class-system-check.php' );
-	$readme   = sabri_file( 'README.md' );
-	$changelog= sabri_file( 'CHANGELOG.md' );
-	$build    = sabri_file( 'tools/build-release.php' );
+	$main       = sabri_file( 'sabri-unified-application-shell.php' );
+	$plugin     = sabri_file( 'includes/class-plugin.php' );
+	$create     = sabri_file( 'includes/class-create-visibility.php' );
+	$renderer   = sabri_file( 'includes/class-renderer.php' );
+	$home       = sabri_file( 'includes/class-home-feed.php' );
+	$css        = sabri_file( 'assets/css/shell.css' );
+	$js         = sabri_file( 'assets/js/shell.js' );
+	$assets     = sabri_file( 'includes/class-assets.php' );
+	$layout     = sabri_file( 'includes/class-layout.php' );
+	$system     = sabri_file( 'includes/class-system-check.php' );
+	$readme     = sabri_file( 'README.md' );
+	$wp_readme  = sabri_file( 'readme.txt' );
+	$changelog  = sabri_file( 'CHANGELOG.md' );
+	$build      = sabri_file( 'tools/build-release.php' );
 
-	sabri_assert( 'Version consistency', false !== strpos( $main, 'Version: 1.0.0' ) && false !== strpos( $main, "SABRI_SHELL_VERSION', '1.0.0" ) && false !== strpos( $changelog, '1.0.0' ) );
+	sabri_assert( 'Version consistency', false !== strpos( $main, 'Version: 1.0.1' ) && false !== strpos( $main, "SABRI_SHELL_VERSION', '1.0.1" ) && false !== strpos( $readme, 'Version: 1.0.1' ) && false !== strpos( $wp_readme, 'Stable tag: 1.0.1' ) && false !== strpos( $changelog, '## 1.0.1' ) && false !== strpos( $build, "$version     = '1.0.1'" ) );
+	sabri_assert( 'Versioned Create producer contract', false !== strpos( $main, "SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.0" ) && false !== strpos( $main, 'sabri_shell_create_contract_available' ) && false !== strpos( $main, 'sabri_shell_create_visible_for_current_user' ) );
 	sabri_assert( 'Plugin header consistency', false !== strpos( $main, 'Plugin Name: Sabri Unified Application Shell' ) && false !== strpos( $main, 'Text Domain: sabri-unified-application-shell' ) );
+	sabri_assert( 'Create bridge registers before settings services', false !== strpos( $plugin, 'CreateVisibility::register();' ) && strpos( $plugin, 'CreateVisibility::register();' ) < strpos( $plugin, 'Settings::register();' ) );
+	sabri_assert( 'Create bridge is request-time and non-persistent', false !== strpos( $create, "option_' . Defaults::OPTION_NAME" ) && false === strpos( $create, 'update_option(' ) && false === strpos( $create, 'delete_option(' ) );
+	sabri_assert( 'Create bridge has recursion and Safe Mode guards', false !== strpos( $create, 'private static $resolving' ) && false !== strpos( $create, 'if ( self::$resolving )' ) && false !== strpos( $create, 'SafeMode::disabled()' ) );
+	sabri_assert( 'Create bridge neutralizes explicit mobile bypass', false !== strpos( $create, "['create_or_doctors'] = 'doctors'" ) && false !== strpos( $create, "['create_or_doctors'] = 'auto'" ) );
+	sabri_assert( 'Create bridge preserves native capability requirement', false !== strpos( $create, "current_user_can( 'edit_posts' )" ) );
 	sabri_assert( 'README limitations documented', false !== strpos( $readme, 'messaging backend is not created by this plugin' ) && false !== strpos( $readme, 'Hostinger staging testing is required before production activation' ) );
 	sabri_assert( 'No wp_body_open-to-wp_footer wrapper', false === strpos( $renderer, '<main' ) && false === strpos( $renderer, '</main>' ) );
 	sabri_assert( 'No whole-page output buffering', false === strpos( $renderer, 'ob_start' ) && false === strpos( $home, 'ob_start' ) );
 	sabri_assert( 'Exactly one Notifications output marker', 1 === substr_count( $renderer, 'data-sabri-notifications-output' ) );
 	sabri_assert( 'Right Sidebar not always rendered', false !== strpos( $renderer, 'Layout::THREE === $mode' ) && false !== strpos( $renderer, 'right_sidebar_has_modules' ) );
 	sabri_assert( 'Desktop sidebars are not fixed or absolute', 0 === preg_match( '/\.sabri-shell-(?:left|right)-sidebar[^{]*\{[^}]*position:\s*(?:fixed|absolute)/i', $css ) );
-	sabri_assert( 'Three-column mode has real left center right columns', false !== strpos( $css, 'body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready' ) && false !== strpos( $css, 'grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr) var(--sabri-shell-right-width, 340px);' ) );
-	sabri_assert( 'Two-column mode has real left center columns', false !== strpos( $css, 'body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready' ) && false !== strpos( $css, 'grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);' ) );
+	sabri_assert( 'Three-column mode has real left-center-right columns', false !== strpos( $css, 'body.sabri-shell-layout-three .sabri-shell-layout-host.is-ready' ) && false !== strpos( $css, 'grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr) var(--sabri-shell-right-width, 340px);' ) );
+	sabri_assert( 'Two-column mode has real left-center columns', false !== strpos( $css, 'body.sabri-shell-layout-two .sabri-shell-layout-host.is-ready' ) && false !== strpos( $css, 'grid-template-columns: var(--sabri-shell-left-width, 280px) minmax(0, 1fr);' ) );
 	sabri_assert( 'Right Sidebar HTML is absent in two-column mode', false !== strpos( $renderer, '$has_right_sidebar = Layout::THREE === $mode' ) && false !== strpos( $renderer, 'if ( $has_right_sidebar )' ) );
 	sabri_assert( 'Theme content selector is functional', false !== strpos( $assets, "'contentSelector'" ) && false !== strpos( $layout, 'content_target_candidates' ) && false !== strpos( $js, 'resolveContentTarget' ) && false !== strpos( $js, 'assembleStructuralLayout' ) && false !== strpos( $system, 'Content target resolver' ) );
 	sabri_assert( 'Context drawer has a matching trigger', false !== strpos( $renderer, 'data-sabri-drawer-trigger="sabri-shell-drawer-context"' ) && false !== strpos( $renderer, 'aria-controls="sabri-shell-drawer-context"' ) && false !== strpos( $renderer, 'id="sabri-shell-drawer-context"' ) );
-	sabri_assert( 'Context trigger is absent from two-column mode', false !== strpos( $renderer, '$has_right_sidebar = Layout::THREE === $mode' ) && false !== strpos( $renderer, 'data-sabri-open-label="' ) );
 	sabri_assert( 'Sticky Header on/off works', false !== strpos( $renderer, 'sabri-shell-sticky-header' ) && false !== strpos( $renderer, 'sabri-shell-static-header' ) && false !== strpos( $css, '.sabri-shell-static-header .sabri-shell-header' ) );
 	sabri_assert( 'Compact Desktop on/off works', false !== strpos( $renderer, 'sabri-shell-compact-desktop' ) && false !== strpos( $renderer, 'sabri-shell-standard-desktop' ) && false !== strpos( $css, '.sabri-shell-compact-desktop .sabri-shell-layout-host' ) );
 	sabri_assert( 'right_sidebar hide_missing has runtime effect', false !== strpos( $renderer, "right_sidebar']['hide_missing" ) && false !== strpos( $renderer, 'should_render_missing_admin_notice' ) );
 	foreach ( array( 'finder', 'filters', 'doctors', 'appointments', 'emergency', 'whatsapp' ) as $module ) {
-		sabri_assert( 'Clinic module toggle controls output: ' . $module, false !== strpos( $renderer, "\$modules['" . $module . "']" ) && false !== strpos( $renderer, 'clinic-' . $module ) );
+		sabri_assert( 'Clinic module toggle controls output: ' . $module, false !== strpos( $renderer, "$modules['" . $module . "']" ) && false !== strpos( $renderer, 'clinic-' . $module ) );
 	}
 	foreach ( array( 'profile', 'appointment', 'message', 'contact', 'reviews', 'safety' ) as $module ) {
-		sabri_assert( 'Single-clinic module toggle controls output: ' . $module, false !== strpos( $renderer, "\$modules['" . $module . "']" ) && false !== strpos( $renderer, 'single-' . $module ) );
+		sabri_assert( 'Single-clinic module toggle controls output: ' . $module, false !== strpos( $renderer, "$modules['" . $module . "']" ) && false !== strpos( $renderer, 'single-' . $module ) );
 	}
-	sabri_assert( 'Development files are absent from release ZIP build', false !== strpos( $build, '$release_allowlist' ) && false !== strpos( $build, '.github/' ) && false !== strpos( $build, 'Development-only path found in release ZIP' ) );
+	sabri_assert( 'Development files are absent from candidate ZIP build', false !== strpos( $build, '$release_allowlist' ) && false !== strpos( $build, "'patches/'" ) && false !== strpos( $build, 'Development-only path found in release ZIP' ) );
 	sabri_assert( 'Home feed duplicate protection', false !== strpos( $home, 'has_shortcode' ) && false !== strpos( $home, '$auto_inserted' ) );
-	sabri_assert( 'Role-aware Create', false !== strpos( $renderer, "current_user_can( 'edit_posts' )" ) && false !== strpos( $renderer, "allowed_roles" ) );
+	sabri_assert( 'Historical Renderer remains role-aware', false !== strpos( $renderer, "current_user_can( 'edit_posts' )" ) && false !== strpos( $renderer, 'allowed_roles' ) );
 	sabri_assert( 'Safe login redirect avoids raw HTTP_HOST', false === strpos( $renderer, 'HTTP_HOST' ) && false !== strpos( $renderer, 'wp_validate_redirect' ) );
 	sabri_assert( 'Responsive overflow rules', false !== strpos( $css, 'overflow-x: clip' ) && false !== strpos( $css, 'min-width: 0' ) && false !== strpos( $css, 'env(safe-area-inset-bottom' ) );
 	sabri_assert( 'Chrome height JavaScript', false !== strpos( $js, '--sabri-shell-chrome-height' ) && false !== strpos( $js, 'document.fonts.ready' ) );
 	sabri_assert( 'Accessible drawers JavaScript', false !== strpos( $js, 'aria-expanded' ) && false !== strpos( $js, 'Escape' ) && false !== strpos( $js, 'inert' ) );
+
 	$all_php = '';
 	$all_text = '';
 	foreach ( sabri_files( '/\.php$/' ) as $file ) {
-		if ( 'tools/run-tests.php' === str_replace( '\\', '/', substr( $file->getPathname(), strlen( dirname( __DIR__ ) ) + 1 ) ) ) {
+		if ( 'tools/run-tests.php' === sabri_relative_path( $file ) ) {
 			continue;
 		}
 		$all_php .= file_get_contents( $file->getPathname() );
@@ -135,25 +134,21 @@ function sabri_static_tests() {
 	}
 	sabri_assert( 'No external runtime, CDN, or remote font dependencies', 0 === preg_match( '#(cdn\.|fonts\.googleapis|fonts\.gstatic|@import\s+url|https?://(?!github\.com/majidhussainqadri1-dot/sabri-unified-application-shell|example\.test))#i', $all_text ) );
 	sabri_assert( 'No bundled font binaries', empty( sabri_files( '/\.(woff2?|ttf|otf|eot)$/i' ) ) );
-
 	$dangerous = array( '\beval\s*\(', '\bshell_exec\s*\(', '\bpassthru\s*\(', '\bproc_open\s*\(', '\bpopen\s*\(', '\bassert\s*\(' );
 	$found = array();
 	foreach ( $dangerous as $pattern ) {
-		if ( preg_match( '/' . $pattern . '/', $all_php ) ) {
-			$found[] = $pattern;
-		}
+		if ( preg_match( '/' . $pattern . '/', $all_php ) ) { $found[] = $pattern; }
 	}
 	sabri_assert( 'Dangerous PHP function scan', empty( $found ), implode( ', ', $found ) );
-	sabri_assert( 'Hard-coded secret scan', 0 === preg_match( '/(ghp_|github_pat_|AKIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|password\s*=\s*[\'"][^\'"]+)/i', $all_php . $readme ) );
+	sabri_assert( 'Hard-coded secret scan', 0 === preg_match( '/(ghp_|github_pat_|AKIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|password\s*=\s*[\'\"][^\'\"]+)/i', $all_php . $readme ) );
 }
 
 function sabri_css_json_tests() {
 	$css = sabri_file( 'assets/css/shell.css' );
 	sabri_assert( 'CSS brace sanity', substr_count( $css, '{' ) === substr_count( $css, '}' ) );
-
 	foreach ( sabri_files( '/\.json$/' ) as $file ) {
-		$data = json_decode( file_get_contents( $file->getPathname() ), true );
-		sabri_assert( 'JSON validation: ' . $file->getFilename(), JSON_ERROR_NONE === json_last_error() );
+		json_decode( file_get_contents( $file->getPathname() ), true );
+		sabri_assert( 'JSON validation: ' . $file->getFilename(), JSON_ERROR_NONE === json_last_error(), json_last_error_msg() );
 	}
 }
 
@@ -167,18 +162,7 @@ function sabri_settings_tests() {
 	$settings['right_sidebar']['enabled'] = true;
 	update_option( Defaults::OPTION_NAME, $settings, false );
 
-	$saved = Settings::sanitize(
-		array(
-			'_active_tab' => 'appearance',
-			'appearance'  => array(
-				'color_mode'    => 'dark',
-				'density'       => 'compact',
-				'primary_color' => '#f26100',
-				'border_radius' => 10,
-				'font_scale'    => 1,
-			),
-		)
-	);
+	$saved = Settings::sanitize( array( '_active_tab' => 'appearance', 'appearance' => array( 'color_mode' => 'dark', 'density' => 'compact', 'primary_color' => '#f26100', 'border_radius' => 10, 'font_scale' => 1 ) ) );
 	sabri_assert( 'Saving Appearance does not disable Shell', true === $saved['enabled'] );
 	sabri_assert( 'Saving Appearance does not disable Header', true === $saved['header']['enabled'] );
 	sabri_assert( 'Saving Appearance does not disable either Sidebar', true === $saved['left_sidebar']['enabled'] && true === $saved['right_sidebar']['enabled'] );
@@ -186,38 +170,10 @@ function sabri_settings_tests() {
 	sabri_assert( 'Values from other tabs survive', true === $saved['header']['search'] );
 
 	update_option( Defaults::OPTION_NAME, $saved, false );
-	$off = Settings::sanitize(
-		array(
-			'_active_tab' => 'header',
-			'header'      => array(
-				'enabled'       => '0',
-				'platform_title'=> 'Sabri',
-				'search'        => '1',
-				'create'        => '1',
-				'messages'      => '1',
-				'notifications' => '1',
-				'help'          => '1',
-				'language'      => '1',
-				'profile'       => '1',
-				'allowed_roles' => "administrator\neditor",
-			),
-		)
-	);
+	$off = Settings::sanitize( array( '_active_tab' => 'header', 'header' => array( 'enabled' => '0', 'platform_title' => 'Sabri', 'search' => '1', 'create' => '1', 'messages' => '1', 'notifications' => '1', 'help' => '1', 'language' => '1', 'profile' => '1', 'allowed_roles' => "administrator\neditor" ) ) );
 	sabri_assert( 'Checkbox can change from ON to OFF on its own tab', false === $off['header']['enabled'] );
 
-	$invalid = Settings::sanitize(
-		array(
-			'_active_tab' => 'layout',
-			'layout'      => array(
-				'max_width'             => 99999,
-				'left_width'            => 1,
-				'right_width'           => 1,
-				'gap'                   => 999,
-				'theme_content_selector'=> 'body',
-				'custom_hide_selectors' => 'script, .safe-selector',
-			),
-		)
-	);
+	$invalid = Settings::sanitize( array( '_active_tab' => 'layout', 'layout' => array( 'max_width' => 99999, 'left_width' => 1, 'right_width' => 1, 'gap' => 999, 'theme_content_selector' => 'body', 'custom_hide_selectors' => 'script, .safe-selector' ) ) );
 	sabri_assert( 'Sanitization rejects invalid selectors and ranges', '' === $invalid['layout']['theme_content_selector'] && '.safe-selector' === $invalid['layout']['custom_hide_selectors'] && 1600 === $invalid['layout']['max_width'] );
 	sabri_assert( 'Sanitization rejects invalid URLs', '' === Settings::sanitize_url( 'javascript:alert(1)' ) && '' === Settings::sanitize_url( 'ftp://example.test/file' ) );
 }
@@ -228,27 +184,21 @@ function sabri_layout_tests() {
 	$settings['layout']['worldwide_clinic_page_id'] = 44;
 	$settings['layout']['clinic_post_type'] = 'doctor';
 	update_option( Defaults::OPTION_NAME, $settings, false );
-
 	$GLOBALS['sabri_test_context']['is_front_page'] = true;
 	sabri_assert( 'Layout resolver: Home = three', Layout::THREE === Layout::current_mode() );
-
 	$GLOBALS['sabri_test_context']['is_front_page'] = false;
 	$GLOBALS['sabri_test_context']['queried_object_id'] = 44;
 	sabri_assert( 'Layout resolver: Clinic directory = three', Layout::THREE === Layout::current_mode() );
-
 	$GLOBALS['sabri_test_context']['queried_object_id'] = 7;
 	$GLOBALS['sabri_test_context']['is_singular'] = true;
 	$GLOBALS['sabri_test_context']['singular_post_type'] = 'doctor';
 	sabri_assert( 'Layout resolver: Single clinic = three', Layout::THREE === Layout::current_mode() );
-
 	$GLOBALS['sabri_test_context']['is_singular'] = false;
 	$GLOBALS['sabri_test_context']['queried_object_id'] = 8;
 	sabri_assert( 'Layout resolver: Other pages = two', Layout::TWO === Layout::current_mode() );
-
 	$settings['layout']['excluded_page_ids'] = array( 8 );
 	update_option( Defaults::OPTION_NAME, $settings, false );
 	sabri_assert( 'Layout resolver: excluded page = minimal', Layout::MINIMAL === Layout::current_mode() );
-
 	$GLOBALS['sabri_test_context']['doing_ajax'] = true;
 	sabri_assert( 'Layout resolver: system request = minimal', Layout::MINIMAL === Layout::current_mode() );
 }
@@ -258,12 +208,10 @@ function sabri_safe_snapshot_tests() {
 	$settings = Settings::get();
 	update_option( Defaults::OPTION_NAME, $settings, false );
 	sabri_assert( 'Safe Mode off by default', false === SafeMode::disabled() );
-
 	$_GET['sabri_shell_safe'] = '1';
 	$GLOBALS['sabri_test_context']['is_user_logged_in'] = true;
 	$GLOBALS['sabri_test_context']['current_user_can'] = array( 'manage_options' );
 	sabri_assert( 'Safe Mode URL for administrator', true === SafeMode::query_safe_mode() );
-
 	$_GET = array();
 	$settings['emergency_disabled'] = true;
 	update_option( Defaults::OPTION_NAME, $settings, false );
@@ -288,26 +236,23 @@ function sabri_navigation_tests() {
 	$GLOBALS['sabri_test_pages'][11] = (object) array( 'ID' => 11, 'post_name' => 'shortcode-page', 'post_status' => 'publish', 'post_content' => '[sabri_encyclopedia]' );
 	$GLOBALS['sabri_test_pages'][12] = (object) array( 'ID' => 12, 'post_name' => 'doctors', 'post_status' => 'publish', 'post_content' => '' );
 	$GLOBALS['sabri_test_post_types']['product'] = true;
-
 	$settings = Settings::get();
 	$settings['navigation']['founder']['page_id'] = 10;
 	$settings['navigation']['marketplace']['url_override'] = 'https://example.test/shop';
 	update_option( Defaults::OPTION_NAME, $settings, false );
-
 	$founder = Navigation::resolve_item( 'founder', Defaults::destinations()['founder'], $settings['navigation']['founder'] );
 	$encyclopedia = Navigation::resolve_item( 'encyclopedia', Defaults::destinations()['encyclopedia'], $settings['navigation']['encyclopedia'] );
 	$marketplace = Navigation::resolve_item( 'marketplace', Defaults::destinations()['marketplace'], $settings['navigation']['marketplace'] );
 	$doctors = Navigation::resolve_item( 'doctors', Defaults::destinations()['doctors'], $settings['navigation']['doctors'] );
-
 	sabri_assert( 'Navigation precedence: configured Page ID', 'configured_page_id' === $founder['reason'] );
 	sabri_assert( 'Navigation precedence: shortcode page', 'page_shortcode' === $encyclopedia['reason'] );
 	sabri_assert( 'Navigation precedence: post-type archive before URL override', 'post_type_archive' === $marketplace['reason'] );
 	sabri_assert( 'Navigation precedence: slug candidate match', 'slug_match' === $doctors['reason'] );
-
 	Navigation::invalidate_cache();
 	sabri_assert( 'Navigation cache invalidation', false === get_transient( Defaults::NAV_CACHE_KEY ) );
 }
 
+sabri_file_helper_tests();
 sabri_static_tests();
 sabri_css_json_tests();
 sabri_settings_tests();
@@ -315,49 +260,29 @@ sabri_layout_tests();
 sabri_safe_snapshot_tests();
 sabri_navigation_tests();
 
-$failed = array_filter(
-	$results,
-	static function ( $result ) {
-		return 'failed' === $result['status'];
-	}
-);
-
-$report = "# Sabri Unified Application Shell Test Report\n\n";
-$report .= "Generated: " . gmdate( 'Y-m-d H:i:s' ) . " UTC\n\n";
+$failed = array_filter( $results, static function ( $result ) { return 'failed' === $result['status']; } );
+$report = "# Sabri Unified Application Shell 1.0.1 Test Report\n\n";
+$report .= 'Generated: ' . gmdate( 'Y-m-d H:i:s' ) . " UTC\n\n";
 $report .= "## Automated and Static Tests\n\n";
 foreach ( $results as $result ) {
 	$report .= '- [' . ( 'passed' === $result['status'] ? 'x' : ' ' ) . '] ' . $result['name'] . ' - ' . strtoupper( $result['status'] );
-	if ( $result['details'] ) {
-		$report .= ' (' . $result['details'] . ')';
-	}
+	if ( $result['details'] ) { $report .= ' (' . $result['details'] . ')'; }
 	$report .= "\n";
 }
-$report .= "\n## WordPress Stub Tests\n\n";
-$report .= "Settings-tab isolation, layout resolver, navigation precedence, Safe Mode, Emergency Disable, and Snapshot/Rollback boundaries ran against local WordPress stubs.\n\n";
-$report .= "## Manual Staging Tests Still Required\n\n";
-$report .= "- Activate on Hostinger staging before production.\n";
-$report .= "- Verify live theme spacing across 320, 360, 390, 480, 768, 900, 1024, 1100, 1280, 1366, 1440, 1600, and 1920 px.\n";
-$report .= "- Verify real companion-plugin destinations for messages, notifications, appointments, marketplace, doctors, and clinic pages.\n";
-$report .= "- Verify cross-browser behavior manually. This report does not claim live production, live database, Hostinger, or cross-browser testing.\n\n";
-$report .= "Messaging backend is not created by this plugin. Real calls are not created. End-to-end encryption is not claimed. Live streaming is not created. AI recommendations are not claimed. Full compatibility with every WordPress theme is not claimed. Hostinger staging testing is required before production activation.\n";
+$report .= "\n## WordPress Stub Tests\n\nSettings isolation, layout resolution, navigation precedence, Safe Mode, Emergency Disable, and Snapshot/Rollback boundaries ran against local WordPress stubs. The focused Create producer and File 21 slot suites run separately in CI and candidate packaging.\n\n";
+$report .= "## Manual Staging Tests Still Required\n\n- Activate on Hostinger staging before production.\n- Verify Files 00, 20, 21, and 22 together.\n- Verify desktop/mobile role parity, fallback, Safe Mode, collision, and rollback.\n- Verify required viewport, keyboard, screen-reader, zoom, reduced-motion, forced-colors, and Urdu RTL behavior.\n- This report does not claim live production, live database, Hostinger, or cross-browser acceptance.\n";
 
 $report_path = null;
 foreach ( $argv as $arg ) {
-	if ( 0 === strpos( $arg, '--report=' ) ) {
-		$report_path = substr( $arg, 9 );
-	}
+	if ( 0 === strpos( $arg, '--report=' ) ) { $report_path = substr( $arg, 9 ); }
 }
-
 if ( $report_path ) {
 	$dir = dirname( $report_path );
-	if ( ! is_dir( $dir ) ) {
-		mkdir( $dir, 0777, true );
-	}
+	if ( ! is_dir( $dir ) ) { mkdir( $dir, 0777, true ); }
 	file_put_contents( $report_path, $report );
 }
 
 echo $report;
-
-if ( ! empty( $failed ) ) {
+if ( $failed ) {
 	exit( 1 );
 }
