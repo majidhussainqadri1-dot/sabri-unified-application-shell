@@ -41,6 +41,7 @@ final class Plugin {
 	 * @return void
 	 */
 	public function register() {
+		CreateVisibility::register();
 		Settings::register();
 		Navigation::register_cache_hooks();
 		HomeFeed::register();
