@@ -170,7 +170,7 @@ On PHP 8.1 and 8.3 it executes File 20's actual Create producer against selected
 
 This is pinned three-repository source-contract convergence. Controlled WordPress, Membership, and selected readiness collaborators remain in the focused tests, so it is not complete Files 00/20/21/22 staging and does not authorize merge or deployment.
 
-See [docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md](docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md).
+Repository review record: `docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md` (development-only; not shipped in the installable ZIP).
 
 ## Accessibility
 
