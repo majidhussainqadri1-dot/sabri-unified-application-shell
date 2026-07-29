@@ -59,6 +59,7 @@ jobs:
           php tests/run-file20-file21-slot-tests.php
           php tests/run-file20-create-producer-tests.php
           php tests/run-file20-create-roleless-tests.php
+          php tests/run-file20-create-collision-tests.php
 
       - name: Validate JSON where applicable
         run: |
