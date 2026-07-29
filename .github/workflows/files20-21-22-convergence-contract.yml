@@ -11,6 +11,11 @@ on:
       - 'includes/class-safe-mode.php'
       - 'includes/class-settings.php'
       - 'tests/run-file20-file22-real-shell-contract-tests.php'
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md'
+      - 'docs/FILES20-21-22-CONVERGENCE-POST-IMPLEMENTATION-REVIEW-2026-07-29.md'
+      - 'docs/FILES20-21-22-CONVERGENCE-POST-CORRECTION-VERIFICATION-2026-07-29.md'
       - '.github/workflows/files20-21-22-convergence-contract.yml'
   workflow_dispatch:
 
@@ -64,13 +69,18 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
 
-      - name: Verify all source pins and syntax
+      - name: Verify all source pins, documentation, and syntax
         shell: bash
         run: |
           set -euo pipefail
           test "$(git -C file20 rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           test "$(git -C file21 rev-parse HEAD)" = "a9bf99ab0169dd56fe664f6a1540a5de6031d518"
           test "$(git -C file22 rev-parse HEAD)" = "9aed674344c33b8756b65e7bc58c223ac6ffc4ae"
+
+          grep -Fq 'a9bf99ab0169dd56fe664f6a1540a5de6031d518' file20/README.md
+          grep -Fq '9aed674344c33b8756b65e7bc58c223ac6ffc4ae' file20/README.md
+          grep -Fq 'Pinned three-repository source-contract convergence' file20/docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md
+          grep -Fq 'does not replace a real WordPress installation' file20/docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md
 
           php -l file20/includes/class-create-visibility.php
           php -l file20/tests/run-file20-file22-real-shell-contract-tests.php
