@@ -143,9 +143,11 @@ The plugin links to real detected systems only.
 
 Admin settings require `manage_options`. File 20 never grants publishing capabilities.
 
-Version 1.0.1 keeps login, Safe Mode, constant disable, Emergency Disable, a positive authenticated subject, at least one normalized role, and native `edit_posts` non-overridable. The legacy fallback additionally requires a configured allowed role. File 22 may replace only that legacy role-list presentation result through `sabri_shell_can_show_create` after central Membership Core, capability, adapter, and availability checks.
+Version 1.0.1 keeps Header enabled/Create enabled, login, Safe Mode, constant disable, Emergency Disable, a positive authenticated subject, at least one normalized role, and native `edit_posts` non-overridable. The legacy fallback additionally requires a configured allowed role. File 22 may replace only that legacy role-list presentation result through `sabri_shell_can_show_create` after central Membership Core, capability, adapter, and availability checks.
 
-Desktop and mobile Create use the same request-time authorization. A denied explicit mobile `create` setting is changed to Doctors for that request. An authorized request preserves the administrator-configured `create`, `auto`, or `doctors` mobile preference. These compatibility changes are never persisted to the database.
+Desktop and mobile Create use the same request-time authorization. Disabling the Header or Header Create closes both surfaces before File 22 authorization runs. A denied explicit mobile `create` setting is changed to Doctors for that request. An authorized request preserves the administrator-configured `create`, `auto`, or `doctors` mobile preference. These compatibility changes are never persisted to the database.
+
+The Create contract is version `1.0.1` and includes an owner proof. A pre-existing producer function or owner constant closes the contract and is reported by System Check. The final filtered Create URL must be credential-free, HTTPS, and same-origin; any malformed, downgraded, or external destination is rejected and replaced only with the validated native admin fallback.
 
 Read-only producer functions:
 
@@ -154,7 +156,7 @@ sabri_shell_create_contract_available();
 sabri_shell_create_visible_for_current_user();
 ```
 
-File 21 preserves its native fallback unless both functions confirm the complete current-user gateway.
+File 21 preserves its native fallback unless both functions confirm the complete current-user gateway and the contract owner/version proof matches.
 
 ## Accessibility
 
@@ -173,6 +175,7 @@ The right sidebar uses only public content and explicitly public profile fields 
 - Theme compatibility depends on how the active theme structures content.
 - Right sidebar modules require real content or real integrations.
 - Live Hostinger, live database, and cross-browser testing must be completed manually.
+- The pinned File 20/File 22 workflow uses actual selected File 22 source components but controlled collaborators and a synthetic adapter; it is not complete Files 00/20/21/22 staging.
 - The plugin does not create duplicate backend databases for companion systems.
 
 ## Tests and Release
@@ -189,4 +192,4 @@ Local release build:
 .\tools\build-release.ps1
 ```
 
-GitHub Actions runs PHP lint, WordPress stub/bootstrap tests, JavaScript syntax checks, CSS sanity checks, static scans, File 21 slot contracts, focused Create authorization tests, release ZIP validation, SHA-256 generation, and artifact upload.
+GitHub Actions checks out and verifies the exact source head, runs complete PHP 8.2 lint and tests, lints every shipped production PHP file on PHP 7.4, runs JavaScript/static checks, File 21 slot contracts, focused Create authorization tests, a pinned hybrid File 20/File 22 source contract, deterministic two-build ZIP comparison, SHA-256 generation, and artifact upload.
