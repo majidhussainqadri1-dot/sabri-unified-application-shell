@@ -65,8 +65,9 @@ final class CreateVisibility {
 	public static function filter_runtime_settings( $value, $option = '' ) {
 		unset( $option );
 
-		if ( self::$resolving || ! is_array( $value ) ) {
-			$value = is_array( $value ) ? $value : array();
+		$value = is_array( $value ) ? $value : array();
+		if ( self::$resolving ) {
+			return $value;
 		}
 
 		self::$resolving = true;
