@@ -5,17 +5,16 @@ declare(strict_types=1);
 
 namespace {
 	define( 'ABSPATH', __DIR__ . '/' );
-
-	$GLOBALS['f20_admin']       = false;
-	$GLOBALS['f20_logged_in']   = false;
-	$GLOBALS['f20_caps']        = array();
-	$GLOBALS['f20_user']        = (object) array( 'ID' => 1, 'roles' => array() );
-	$GLOBALS['f20_settings']    = array();
-	$GLOBALS['f20_safe']        = false;
-	$GLOBALS['f20_safe_reads']  = false;
-	$GLOBALS['f20_filter']      = null;
-	$GLOBALS['f20_filter_calls']= 0;
-	$GLOBALS['f20_hooks']       = array();
+	$GLOBALS['f20_admin']        = false;
+	$GLOBALS['f20_logged_in']    = false;
+	$GLOBALS['f20_caps']         = array();
+	$GLOBALS['f20_user']         = (object) array( 'ID' => 1, 'roles' => array() );
+	$GLOBALS['f20_settings']     = array();
+	$GLOBALS['f20_safe']         = false;
+	$GLOBALS['f20_safe_reads']   = false;
+	$GLOBALS['f20_filter']       = null;
+	$GLOBALS['f20_filter_calls'] = 0;
+	$GLOBALS['f20_hooks']        = array();
 
 	function __( $text, $domain = '' ) { unset( $domain ); return $text; }
 	function sanitize_key( $key ) { return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $key ) ); }
@@ -83,10 +82,10 @@ namespace Sabri\UnifiedShell {
 
 	$reset();
 	CreateVisibility::register();
-	$assert( 1 === count( $GLOBALS['f20_hooks'] ) && 'option_sabri_shell_settings' === $GLOBALS['f20_hooks'][0][0], 'Public request filter registration failed.' );
+	$assert( 1 === count( $GLOBALS['f20_hooks'] ) && 'option_sabri_shell_settings' === $GLOBALS['f20_hooks'][0][0], 'Public filter registration failed.' );
 	$GLOBALS['f20_admin'] = true;
 	CreateVisibility::register();
-	$assert( 1 === count( $GLOBALS['f20_hooks'] ), 'User-specific option filter registered in wp-admin.' );
+	$assert( 1 === count( $GLOBALS['f20_hooks'] ), 'User-specific filter registered in wp-admin.' );
 
 	$reset();
 	$GLOBALS['f20_user']   = (object) array( 'ID' => 10, 'roles' => array( 'administrator' ) );
@@ -108,11 +107,19 @@ namespace Sabri\UnifiedShell {
 
 	$reset();
 	$GLOBALS['f20_logged_in'] = true;
+	$GLOBALS['f20_user']      = (object) array( 'ID' => 22, 'roles' => array( 'sabri_verified_doctor' ) );
+	$GLOBALS['f20_filter']    = static function () { return true; };
+	$result = CreateVisibility::filter_runtime_settings( array( 'mobile' => array( 'create_or_doctors' => 'create' ) ) );
+	$assert( 'doctors' === $result['mobile']['create_or_doctors'], 'Positive integration filter bypassed native edit_posts parity.' );
+	$assert( 0 === $GLOBALS['f20_filter_calls'], 'Extension filter ran before native capability safeguard.' );
+
+	$reset();
+	$GLOBALS['f20_logged_in'] = true;
 	$GLOBALS['f20_caps']      = array( 'edit_posts' );
 	$GLOBALS['f20_user']      = (object) array( 'ID' => 10, 'roles' => array( 'administrator' ) );
-	$result = CreateVisibility::filter_runtime_settings( array() );
-	$assert( 'auto' === $result['mobile']['create_or_doctors'], 'Legacy administrator fallback was not preserved.' );
-	$GLOBALS['f20_settings'] = $result;
+	$result = CreateVisibility::filter_runtime_settings( array( 'mobile' => array( 'create_or_doctors' => 'doctors' ) ) );
+	$assert( 'doctors' === $result['mobile']['create_or_doctors'], 'Authorized request overwrote administrator-selected Doctors mode.' );
+	$GLOBALS['f20_settings'] = array();
 	$assert( true === CreateVisibility::visible_for_current_user(), 'Visible producer rejected legacy administrator.' );
 
 	$reset();
@@ -121,8 +128,8 @@ namespace Sabri\UnifiedShell {
 	$GLOBALS['f20_user']      = (object) array( 'ID' => 22, 'roles' => array( 'sabri_verified_doctor' ) );
 	$GLOBALS['f20_filter']    = static function ( $allowed, $user_id ) { unset( $allowed ); return 22 === $user_id; };
 	$result = CreateVisibility::filter_runtime_settings( array( 'mobile' => array( 'create_or_doctors' => 'create' ) ) );
-	$assert( in_array( 'sabri_verified_doctor', $result['header']['allowed_roles'], true ), 'Central authorization did not bridge the legacy role list.' );
-	$assert( 'auto' === $result['mobile']['create_or_doctors'], 'Authorized doctor mobile Create is not using shared authorization.' );
+	$assert( in_array( 'sabri_verified_doctor', $result['header']['allowed_roles'], true ), 'Central authorization did not bridge legacy role list.' );
+	$assert( 'create' === $result['mobile']['create_or_doctors'], 'Authorized explicit Create preference was not preserved.' );
 	$GLOBALS['f20_settings'] = array();
 	$assert( true === CreateVisibility::visible_for_current_user(), 'Visible producer rejected centrally authorized doctor.' );
 
@@ -162,7 +169,7 @@ namespace Sabri\UnifiedShell {
 	$assert( false !== strpos( $bootstrap, 'sabri_shell_create_contract_available' ) && false !== strpos( $bootstrap, 'sabri_shell_create_visible_for_current_user' ), 'Read-only producer functions are missing.' );
 	$assert( strpos( $plugin, 'CreateVisibility::register();' ) < strpos( $plugin, 'Settings::register();' ), 'Create bridge is registered too late.' );
 	$assert( false === strpos( $helper, 'update_option(' ) && false === strpos( $helper, 'delete_option(' ), 'Create bridge contains a database-write path.' );
-	$assert( false !== strpos( $helper, "['create_or_doctors'] = 'doctors'" ) && false !== strpos( $helper, "['create_or_doctors'] = 'auto'" ), 'Mobile bypass neutralization is missing.' );
+	$assert( false !== strpos( $helper, '$mobile_mode' ) && false !== strpos( $helper, "['create_or_doctors'] = 'doctors'" ), 'Mobile preference preservation or denial neutralization is missing.' );
 
 	if ( $failures ) {
 		fwrite( STDERR, implode( PHP_EOL, $failures ) . PHP_EOL );
