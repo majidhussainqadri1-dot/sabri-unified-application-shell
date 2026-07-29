@@ -4,7 +4,7 @@ Tags: application shell, navigation, layout, accessibility, homeopathy
 Requires at least: 6.0
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 Text Domain: sabri-unified-application-shell
 
@@ -13,6 +13,8 @@ Secure responsive public application shell for the Sabri Social Homeopathy Platf
 == Description ==
 
 Sabri Unified Application Shell adds a global header, primary navigation, left sidebar, conditional right sidebar, mobile bottom navigation, accessible drawers, admin settings, System Check, Complete Repair, Safe Mode, Emergency Disable/Re-enable, activation snapshot, rollback, and release packaging support.
+
+Version 1.0.1 adds the official File 21 Home and News placement slots and the versioned File 22 Create producer contract. Desktop and mobile Create use one fail-closed authorization decision. Logged-out, Safe Mode, constant disable, and Emergency Disable safeguards cannot be overridden. File 20 grants no publishing capability.
 
 This is an independent plugin. It does not depend on the cancelled sabri-global-ui plugin and does not create duplicate messaging, notification, appointment, profile, marketplace, or publishing databases.
 
@@ -40,6 +42,9 @@ Important limitations:
 Use `[sabri_shell_home_feed]` to render the chronological Latest feed.
 
 == Changelog ==
+
+= 1.0.1 =
+Added File 21 Home/News placement slots and the fail-closed File 22 Create producer contract with desktop/mobile authorization parity and no request-time settings writes.
 
 = 1.0.0 =
 Initial independent plugin release.
