@@ -18,12 +18,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'SABRI_SHELL_VERSION', '1.0.1' );
-define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.0' );
 define( 'SABRI_SHELL_FILE', __FILE__ );
 define( 'SABRI_SHELL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SABRI_SHELL_URL', plugin_dir_url( __FILE__ ) );
 define( 'SABRI_SHELL_SLUG', 'sabri-unified-application-shell' );
 define( 'SABRI_SHELL_TEXT_DOMAIN', 'sabri-unified-application-shell' );
+
+$create_contract_unclaimed = ! function_exists( 'sabri_shell_create_contract_available' )
+	&& ! function_exists( 'sabri_shell_create_visible_for_current_user' );
+$create_owner_unclaimed = ! defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' )
+	&& ! defined( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' );
+
+if ( $create_contract_unclaimed && $create_owner_unclaimed ) {
+	define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.1' );
+	define( 'SABRI_SHELL_CREATE_CONTRACT_OWNER', SABRI_SHELL_SLUG );
+	define( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED', true );
+} else {
+	if ( ! defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' ) ) {
+		define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '0.0.0' );
+	}
+	if ( ! defined( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' ) ) {
+		define( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED', false );
+	}
+}
 
 spl_autoload_register(
 	static function ( $class_name ) {
@@ -57,17 +74,17 @@ spl_autoload_register(
 );
 
 /** Whether the exact File 22 Create producer contract is loaded and safe. */
-if ( ! function_exists( 'sabri_shell_create_contract_available' ) ) {
+if ( true === SABRI_SHELL_CREATE_FUNCTIONS_OWNED ) {
 	function sabri_shell_create_contract_available() {
 		return defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' )
-			&& version_compare( (string) SABRI_SHELL_CREATE_CONTRACT_VERSION, '1.0.0', '>=' )
+			&& '1.0.1' === (string) SABRI_SHELL_CREATE_CONTRACT_VERSION
+			&& defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' )
+			&& SABRI_SHELL_SLUG === (string) SABRI_SHELL_CREATE_CONTRACT_OWNER
 			&& class_exists( 'Sabri\\UnifiedShell\\CreateVisibility' )
 			&& Sabri\UnifiedShell\CreateVisibility::contract_available();
 	}
-}
 
-/** Whether the current user has a visible, enabled Header Create gateway. */
-if ( ! function_exists( 'sabri_shell_create_visible_for_current_user' ) ) {
+	/** Whether the current user has a visible, enabled Header Create gateway. */
 	function sabri_shell_create_visible_for_current_user() {
 		return sabri_shell_create_contract_available()
 			&& Sabri\UnifiedShell\CreateVisibility::visible_for_current_user();
