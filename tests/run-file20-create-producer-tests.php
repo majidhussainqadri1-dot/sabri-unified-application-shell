@@ -173,7 +173,7 @@ namespace Sabri\UnifiedShell {
 	$assert( false !== strpos( $bootstrap, 'SABRI_SHELL_CREATE_CONTRACT_OWNER' ) && false !== strpos( $bootstrap, 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' ), 'Contract ownership proof is missing.' );
 	$assert( strpos( $plugin, 'CreateVisibility::register();' ) < strpos( $plugin, 'Settings::register();' ), 'Create bridge is registered too late.' );
 	$assert( false === strpos( $helper, 'update_option(' ) && false === strpos( $helper, 'delete_option(' ), 'Create bridge contains a database-write path.' );
-	$assert( false !== strpos( $helper, "empty( $settings['header']['enabled'] )" ) && false !== strpos( $helper, "empty( $settings['header']['create'] )" ), 'Header/Create fail-closed parity is missing.' );
+	$assert( false !== strpos( $helper, "empty( \$settings['header']['enabled'] )" ) && false !== strpos( $helper, "empty( \$settings['header']['create'] )" ), 'Header/Create fail-closed parity is missing.' );
 	$assert( false !== strpos( $helper, 'same_origin_https_url' ), 'Same-origin HTTPS Create URL validation is missing.' );
 
 	if ( $failures ) {
