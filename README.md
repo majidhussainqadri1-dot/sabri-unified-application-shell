@@ -143,9 +143,9 @@ The plugin links to real detected systems only.
 
 Admin settings require `manage_options`. File 20 never grants publishing capabilities.
 
-Version 1.0.1 keeps login, Safe Mode, constant disable, and Emergency Disable non-overridable. The legacy fallback still requires `edit_posts` plus a configured allowed role. File 22 may replace only that legacy presentation result through `sabri_shell_can_show_create` after central Membership Core, capability, adapter, and availability checks.
+Version 1.0.1 keeps login, Safe Mode, constant disable, Emergency Disable, a positive authenticated subject, at least one normalized role, and native `edit_posts` non-overridable. The legacy fallback additionally requires a configured allowed role. File 22 may replace only that legacy role-list presentation result through `sabri_shell_can_show_create` after central Membership Core, capability, adapter, and availability checks.
 
-Desktop and mobile Create use the same request-time decision. A denied explicit mobile `create` setting is changed to Doctors for that request; an authorized setting uses the shared automatic decision. These compatibility changes are not persisted to the database.
+Desktop and mobile Create use the same request-time authorization. A denied explicit mobile `create` setting is changed to Doctors for that request. An authorized request preserves the administrator-configured `create`, `auto`, or `doctors` mobile preference. These compatibility changes are never persisted to the database.
 
 Read-only producer functions:
 
@@ -189,4 +189,4 @@ Local release build:
 .\tools\build-release.ps1
 ```
 
-GitHub Actions runs PHP lint, WordPress stub/bootstrap tests, JavaScript syntax checks, CSS sanity checks, static scans, release ZIP validation, SHA-256 generation, and artifact upload.
+GitHub Actions runs PHP lint, WordPress stub/bootstrap tests, JavaScript syntax checks, CSS sanity checks, static scans, File 21 slot contracts, focused Create authorization tests, release ZIP validation, SHA-256 generation, and artifact upload.
