@@ -1,6 +1,6 @@
 <?php
 /**
- * Cross-repository File 20 Create producer and real File 22 Shell Bridge test.
+ * Pinned hybrid contract for File 20 Create producer and actual File 22 Shell Bridge.
  *
  * FILE22_ROOT must point to the exact reviewed File 22 source checkout.
  */
@@ -33,6 +33,9 @@ namespace {
 	define( 'SMC_VERSION', '1.0.1' );
 	define( 'SUPC_MIN_SMC_VERSION', '1.0.1' );
 	define( 'SUPC_ADAPTER_API_VERSION', '1.0.0' );
+	define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.1' );
+	define( 'SABRI_SHELL_CREATE_CONTRACT_OWNER', 'sabri-unified-application-shell' );
+	define( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED', true );
 
 	$GLOBALS['real_shell_hooks'] = array();
 	$GLOBALS['real_shell_filter_invocations'] = array();
@@ -52,8 +55,7 @@ namespace {
 			private string $code = '',
 			private string $message = '',
 			private mixed $data = null
-		) {
-		}
+		) {}
 		public function get_error_code(): string { return $this->code; }
 		public function get_error_message(): string { return $this->message; }
 		public function get_error_data(): mixed { return $this->data; }
@@ -70,6 +72,10 @@ namespace {
 	function get_userdata( $user_id ) { return (int) $user_id === get_current_user_id() ? $GLOBALS['real_shell_current_user'] : false; }
 	function smc_user_status( $user_id ) { return (int) $user_id === get_current_user_id() ? (string) $GLOBALS['real_shell_status'] : 'rejected'; }
 	function admin_url( $path = '' ) { return 'https://example.test/wp-admin/' . ltrim( (string) $path, '/' ); }
+	function home_url( $path = '' ) { return 'https://example.test/' . ltrim( (string) $path, '/' ); }
+	function wp_parse_url( $url ) { return parse_url( (string) $url ); }
+	function wp_validate_redirect( $url, $fallback = '' ) { return filter_var( $url, FILTER_VALIDATE_URL ) ? $url : $fallback; }
+	function esc_url_raw( $url, $protocols = null ) { unset( $protocols ); return (string) $url; }
 
 	function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 		$GLOBALS['real_shell_hooks'][ $hook ][ (int) $priority ][] = array(
@@ -104,7 +110,6 @@ namespace Sabri\UniversalComposer\Core {
 		public static bool $is_disabled = false;
 		public static function disabled(): bool { return self::$is_disabled; }
 	}
-
 	final class Page_Resolver {
 		public static bool $ready = true;
 		public static string $resolved_url = 'https://example.test/create/';
@@ -118,7 +123,6 @@ namespace {
 	require_once dirname( __DIR__ ) . '/includes/class-settings.php';
 	require_once dirname( __DIR__ ) . '/includes/class-safe-mode.php';
 	require_once dirname( __DIR__ ) . '/includes/class-create-visibility.php';
-
 	require_once $file22_root . '/includes/contracts/interface-adapter.php';
 	require_once $file22_root . '/includes/contracts/interface-workflow-adapter.php';
 	require_once $file22_root . '/includes/core/class-permission-resolver.php';
@@ -128,12 +132,11 @@ namespace {
 
 namespace Sabri\File20File22RealContract {
 	use Sabri\UniversalComposer\Contracts\Adapter;
-
 	final class Test_Adapter implements Adapter {
 		public function api_version(): string { return '1.0.0'; }
 		public function key(): string { return 'social_publication'; }
 		public function label(): string { return 'Social Post'; }
-		public function description(): string { return 'Real cross-repository contract adapter.'; }
+		public function description(): string { return 'Pinned hybrid contract adapter.'; }
 		public function group(): string { return 'publishing'; }
 		public function icon(): string { return 'admin-post'; }
 		public function priority(): int { return 10; }
@@ -175,17 +178,26 @@ namespace {
 
 	$permissions = new Permission_Resolver();
 	$registry = new Registry( $permissions );
-	$assert( true === $registry->register( new Test_Adapter() ), 'Real File 22 Registry rejected the test adapter.' );
-
+	$assert( true === $registry->register( new Test_Adapter() ), 'Actual File 22 Registry rejected the synthetic adapter collaborator.' );
 	CreateVisibility::register();
 	$bridge = new Shell_Bridge( $registry );
 	$bridge->register();
 
 	$settings = Settings::get();
-	$assert( in_array( 'sabri_verified_doctor', $settings['header']['allowed_roles'], true ), 'Real File 22 Shell Bridge did not authorize the current doctor in File 20.' );
-	$assert( 'create' === $settings['mobile']['create_or_doctors'], 'File 20 did not preserve the authorized explicit mobile Create preference.' );
-	$assert( CreateVisibility::visible_for_current_user(), 'File 20 producer did not report the real File 22 gateway as visible.' );
-	$assert( 'https://example.test/create/' === apply_filters( 'sabri_shell_create_url', admin_url( 'post-new.php' ) ), 'Real File 22 Shell Bridge did not provide the universal Create URL.' );
+	$assert( in_array( 'sabri_verified_doctor', $settings['header']['allowed_roles'], true ), 'Actual File 22 Shell Bridge did not authorize the current doctor in File 20.' );
+	$assert( 'create' === $settings['mobile']['create_or_doctors'], 'File 20 did not preserve authorized explicit mobile Create.' );
+	$assert( CreateVisibility::visible_for_current_user(), 'File 20 producer did not report the pinned hybrid gateway as visible.' );
+	$assert( 'https://example.test/create/' === CreateVisibility::create_url(), 'Actual File 22 Shell Bridge did not provide an accepted same-origin HTTPS Create URL.' );
+
+	foreach ( array( 'enabled', 'create' ) as $switch ) {
+		$registry->flush_cache();
+		$GLOBALS['real_shell_options'][ Defaults::OPTION_NAME ]['header'][ $switch ] = false;
+		$GLOBALS['real_shell_filter_invocations']['sabri_shell_can_show_create'] = 0;
+		$settings = Settings::get();
+		$assert( 'doctors' === $settings['mobile']['create_or_doctors'], 'Disabled Header/Create retained mobile Create: ' . $switch );
+		$assert( 0 === $GLOBALS['real_shell_filter_invocations']['sabri_shell_can_show_create'], 'File 22 visibility filter ran after disabled Header/Create: ' . $switch );
+		$GLOBALS['real_shell_options'][ Defaults::OPTION_NAME ]['header'][ $switch ] = true;
+	}
 
 	$registry->flush_cache();
 	Safe_Mode::$is_disabled = true;
@@ -220,13 +232,12 @@ namespace {
 	$GLOBALS['real_shell_caps'][22] = array( 'edit_posts', 'sabri_feed_create_posts' );
 	$GLOBALS['real_shell_options'][ Defaults::OPTION_NAME ]['emergency_disabled'] = true;
 	$settings = Settings::get();
-	$assert( 'doctors' === $settings['mobile']['create_or_doctors'], 'File 20 Emergency Disable did not close the real cross-plugin gateway.' );
+	$assert( 'doctors' === $settings['mobile']['create_or_doctors'], 'File 20 Emergency Disable did not close the pinned hybrid gateway.' );
 	$assert( ! CreateVisibility::contract_available(), 'File 20 contract remained available during Emergency Disable.' );
 
 	if ( $failures ) {
 		fwrite( STDERR, implode( PHP_EOL, $failures ) . PHP_EOL );
 		exit( 1 );
 	}
-
-	echo "Real File 20 and File 22 Shell Bridge contract passed.\n";
+	echo "Pinned hybrid File 20 and File 22 Shell contract passed.\n";
 }
