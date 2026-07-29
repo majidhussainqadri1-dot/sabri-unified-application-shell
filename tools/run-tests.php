@@ -53,11 +53,13 @@ function sabri_static_tests() {
 	$builder   = sabri_file( 'tools/build-release.php' );
 
 	sabri_assert( 'Version consistency', false !== strpos( $main, 'Version: 1.0.1' ) && false !== strpos( $main, "SABRI_SHELL_VERSION', '1.0.1" ) && false !== strpos( $readme, 'Version: 1.0.1' ) && false !== strpos( $wp_readme, 'Stable tag: 1.0.1' ) && false !== strpos( $change, '## 1.0.1' ) && false !== strpos( $builder, "\$version     = '1.0.1'" ) );
-	sabri_assert( 'Versioned Create contract', false !== strpos( $main, "SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.0" ) && false !== strpos( $main, 'sabri_shell_create_contract_available' ) && false !== strpos( $main, 'sabri_shell_create_visible_for_current_user' ) );
+	sabri_assert( 'Versioned Create contract', false !== strpos( $main, "SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.1" ) && false !== strpos( $main, 'SABRI_SHELL_CREATE_CONTRACT_OWNER' ) && false !== strpos( $main, 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' ) && false !== strpos( $main, 'sabri_shell_create_contract_available' ) && false !== strpos( $main, 'sabri_shell_create_visible_for_current_user' ) );
 	sabri_assert( 'Create bridge registration order', false !== strpos( $plugin, 'CreateVisibility::register();' ) && strpos( $plugin, 'CreateVisibility::register();' ) < strpos( $plugin, 'Settings::register();' ) );
 	sabri_assert( 'Create bridge no-write boundary', false !== strpos( $create, "option_' . Defaults::OPTION_NAME" ) && false === strpos( $create, 'update_option(' ) && false === strpos( $create, 'delete_option(' ) );
-	sabri_assert( 'Create bridge fail-closed controls', false !== strpos( $create, 'private static $resolving' ) && false !== strpos( $create, 'SafeMode::disabled()' ) && false !== strpos( $create, "current_user_can( 'edit_posts' )" ) );
+	sabri_assert( 'Create bridge fail-closed controls', false !== strpos( $create, 'private static $resolving' ) && false !== strpos( $create, "empty( \$settings['header']['enabled'] )" ) && false !== strpos( $create, "empty( \$settings['header']['create'] )" ) && false !== strpos( $create, 'SafeMode::disabled()' ) && false !== strpos( $create, "current_user_can( 'edit_posts' )" ) );
 	sabri_assert( 'Mobile preference and bypass contract', false !== strpos( $create, '$mobile_mode' ) && false !== strpos( $create, "['create_or_doctors'] = 'doctors'" ) );
+	sabri_assert( 'Create URL integrity', false !== strpos( $create, 'same_origin_https_url' ) && false !== strpos( $create, "'https' !== strtolower" ) && false !== strpos( $create, "! empty( \$target['user'] )" ) );
+	sabri_assert( 'System Check Create diagnostics', false !== strpos( $system, 'Create contract version' ) && false !== strpos( $system, 'Create contract ownership' ) && false !== strpos( $system, 'Current Create URL' ) );
 	sabri_assert( 'README limitations', false !== strpos( $readme, 'messaging backend is not created by this plugin' ) && false !== strpos( $readme, 'Hostinger staging testing is required before production activation' ) );
 	sabri_assert( 'No whole-page wrapper or buffering', false === strpos( $renderer, '<main' ) && false === strpos( $renderer, '</main>' ) && false === strpos( $renderer, 'ob_start' ) && false === strpos( $home, 'ob_start' ) );
 	sabri_assert( 'One Notifications output marker', 1 === substr_count( $renderer, 'data-sabri-notifications-output' ) );
@@ -68,16 +70,21 @@ function sabri_static_tests() {
 	sabri_assert( 'Home duplicate protection', false !== strpos( $home, 'has_shortcode' ) && false !== strpos( $home, '$auto_inserted' ) );
 	sabri_assert( 'Safe login redirect', false === strpos( $renderer, 'HTTP_HOST' ) && false !== strpos( $renderer, 'wp_validate_redirect' ) );
 	sabri_assert( 'Candidate excludes development paths', false !== strpos( $builder, "'patches/'" ) && false !== strpos( $builder, "'tests/'" ) && false !== strpos( $builder, 'Development-only path found in release ZIP' ) );
+	sabri_assert( 'Reproducible candidate builder', false !== strpos( $builder, 'SOURCE_DATE_EPOCH' ) && false !== strpos( $builder, 'setMtimeName' ) && false !== strpos( $builder, 'ksort( $release_files' ) );
 
 	$all_php = '';
-	$all_text = '';
+	$runtime_text = '';
 	foreach ( sabri_files( '/\.php$/' ) as $file ) {
 		$path = str_replace( '\\', '/', substr( $file->getPathname(), strlen( dirname( __DIR__ ) ) + 1 ) );
-		if ( 'tools/run-tests.php' === $path ) { continue; }
-		$all_php .= file_get_contents( $file->getPathname() );
+		if ( 'tools/run-tests.php' !== $path ) { $all_php .= file_get_contents( $file->getPathname() ); }
 	}
-	foreach ( sabri_files( '/\.(?:php|css|js|md|txt|yml|yaml)$/i' ) as $file ) { $all_text .= file_get_contents( $file->getPathname() ); }
-	sabri_assert( 'No remote runtime dependencies', 0 === preg_match( '#(cdn\.|fonts\.googleapis|fonts\.gstatic|@import\s+url|https?://(?!github\.com/majidhussainqadri1-dot/sabri-unified-application-shell|example\.test))#i', $all_text ) );
+	foreach ( sabri_files( '/\.(?:php|css|js)$/i' ) as $file ) {
+		$path = str_replace( '\\', '/', substr( $file->getPathname(), strlen( dirname( __DIR__ ) ) + 1 ) );
+		if ( preg_match( '#^(?:sabri-unified-application-shell\.php|uninstall\.php|includes/|admin/|assets/)#', $path ) ) {
+			$runtime_text .= file_get_contents( $file->getPathname() );
+		}
+	}
+	sabri_assert( 'No remote runtime dependencies', 0 === preg_match( '#(cdn\.|fonts\.googleapis|fonts\.gstatic|@import\s+url|https?://(?!github\.com/majidhussainqadri1-dot/sabri-unified-application-shell|example\.test))#i', $runtime_text ) );
 	sabri_assert( 'No bundled font binaries', empty( sabri_files( '/\.(?:woff2?|ttf|otf|eot)$/i' ) ) );
 	$dangerous = array( '\beval\s*\(', '\bshell_exec\s*\(', '\bpassthru\s*\(', '\bproc_open\s*\(', '\bpopen\s*\(', '(?<!\$)\bassert\s*\(' );
 	$found = array();
