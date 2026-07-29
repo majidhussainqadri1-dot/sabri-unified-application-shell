@@ -84,6 +84,7 @@ final class CreateVisibility {
 			}
 
 			$allowed_roles = isset( $settings['header']['allowed_roles'] ) && is_array( $settings['header']['allowed_roles'] ) ? $settings['header']['allowed_roles'] : array();
+			$allowed_roles = array_values( array_filter( array_map( 'sanitize_key', $allowed_roles ) ) );
 			$mobile_mode   = isset( $settings['mobile']['create_or_doctors'] ) ? sanitize_key( (string) $settings['mobile']['create_or_doctors'] ) : 'auto';
 			$mobile_mode   = in_array( $mobile_mode, array( 'create', 'auto', 'doctors' ), true ) ? $mobile_mode : 'auto';
 
@@ -111,9 +112,13 @@ final class CreateVisibility {
 			return false;
 		}
 
-		$user_id       = self::current_user_id();
-		$legacy_result = self::legacy_renderer_allows_current_user( $settings );
+		$roles   = self::current_roles();
+		$user_id = self::current_user_id();
+		if ( empty( $roles ) || $user_id <= 0 ) {
+			return false;
+		}
 
+		$legacy_result = self::legacy_renderer_allows_current_user( $settings );
 		if ( ! function_exists( 'apply_filters' ) ) {
 			return $legacy_result;
 		}
@@ -128,6 +133,7 @@ final class CreateVisibility {
 		}
 
 		$allowed_roles = isset( $settings['header']['allowed_roles'] ) && is_array( $settings['header']['allowed_roles'] ) ? $settings['header']['allowed_roles'] : array();
+		$allowed_roles = array_values( array_filter( array_map( 'sanitize_key', $allowed_roles ) ) );
 		return (bool) array_intersect( self::current_roles(), $allowed_roles );
 	}
 
