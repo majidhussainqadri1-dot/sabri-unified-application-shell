@@ -158,6 +158,20 @@ sabri_shell_create_visible_for_current_user();
 
 File 21 preserves its native fallback unless both functions confirm the complete current-user gateway and the contract owner/version proof matches.
 
+## Pinned Files 20, 21, and 22 Convergence
+
+A dedicated GitHub Actions gate tests one explicit dependency set together:
+
+- the exact File 20 pull-request head;
+- File 21 corrective head `a9bf99ab0169dd56fe664f6a1540a5de6031d518`;
+- File 22 Phase 22E head `9aed674344c33b8756b65e7bc58c223ac6ffc4ae`.
+
+On PHP 8.1 and 8.3 it executes File 20's actual Create producer against selected actual File 22 Shell components, File 21's actual native workflow adapter against File 22's actual Workflow Coordinator, and File 21's bounded workflow-maintenance contracts.
+
+This is pinned three-repository source-contract convergence. Controlled WordPress, Membership, and selected readiness collaborators remain in the focused tests, so it is not complete Files 00/20/21/22 staging and does not authorize merge or deployment.
+
+See [docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md](docs/FILES20-21-22-PINNED-CONVERGENCE-CONTRACT-2026-07-29.md).
+
 ## Accessibility
 
 The implementation targets WCAG 2.2 AA as a design objective. It includes semantic landmarks, a skip link, visible focus, accessible drawers, focus trapping, Escape close, outside click close, focus restoration, logical CSS properties for RTL readiness, and minimum 44px mobile touch targets.
@@ -175,7 +189,7 @@ The right sidebar uses only public content and explicitly public profile fields 
 - Theme compatibility depends on how the active theme structures content.
 - Right sidebar modules require real content or real integrations.
 - Live Hostinger, live database, and cross-browser testing must be completed manually.
-- The pinned File 20/File 22 workflow uses actual selected File 22 source components but controlled collaborators and a synthetic adapter; it is not complete Files 00/20/21/22 staging.
+- The pinned Files 20/21/22 convergence gate uses actual selected source from all three repositories, but controlled WordPress, Membership, File 22 readiness/Safe Mode, and other focused test collaborators remain; it is not complete Files 00/20/21/22 staging.
 - The plugin does not create duplicate backend databases for companion systems.
 
 ## Tests and Release
@@ -192,4 +206,4 @@ Local release build:
 .\tools\build-release.ps1
 ```
 
-GitHub Actions checks out and verifies the exact source head, runs complete PHP 8.2 lint and tests, lints every shipped production PHP file on PHP 7.4, runs JavaScript/static checks, File 21 slot contracts, focused Create authorization tests, a pinned hybrid File 20/File 22 source contract, deterministic two-build ZIP comparison, SHA-256 generation, and artifact upload.
+GitHub Actions checks out and verifies the exact source head, runs complete PHP 8.2 lint and tests, lints every shipped production PHP file on PHP 7.4, runs JavaScript/static checks, File 21 slot contracts, focused Create authorization tests, the pinned File 20/File 22 Shell contract, the pinned Files 20/21/22 convergence contract, deterministic two-build ZIP comparison, SHA-256 generation, and artifact upload.
