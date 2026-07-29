@@ -103,7 +103,7 @@ namespace Sabri\UnifiedShell {
 	$assert( 2 === count( $GLOBALS['f20_hooks'] ) && 'option_sabri_shell_settings' === $GLOBALS['f20_hooks'][0][0] && 'sabri_shell_create_url' === $GLOBALS['f20_hooks'][1][0], 'Public filter registration failed.' );
 	$GLOBALS['f20_admin'] = true;
 	CreateVisibility::register();
-	$assert( 2 === count( $GLOBALS['f20_hooks'] ), 'User-specific filters registered in wp-admin.' );
+	$assert( 2 === count( $GLOBALS['f20_hooks'] ), 'User-specific filter registered in wp-admin.' );
 
 	$reset();
 	$GLOBALS['f20_user']   = (object) array( 'ID' => 10, 'roles' => array( 'administrator' ) );
@@ -149,12 +149,9 @@ namespace Sabri\UnifiedShell {
 	$assert( true === CreateVisibility::visible_for_current_user(), 'Visible producer rejected centrally authorized doctor.' );
 	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::create_url(), 'Authorized same-origin HTTPS fallback URL was rejected.' );
 
-	$GLOBALS['f20_url_filter'] = static function () { return 'https://evil.example/create/'; };
-	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::create_url(), 'Cross-origin Create URL was not replaced by the safe fallback.' );
-	$GLOBALS['f20_url_filter'] = static function () { return 'http://example.test/create/'; };
-	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::create_url(), 'HTTP downgrade Create URL was not replaced by the safe fallback.' );
-	$GLOBALS['f20_url_filter'] = static function () { return 'https://user:pass@example.test/create/'; };
-	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::create_url(), 'Credential-bearing Create URL was not replaced by the safe fallback.' );
+	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::filter_create_url( 'https://evil.example/create/' ), 'Cross-origin Create URL was not replaced by the safe fallback.' );
+	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::filter_create_url( 'http://example.test/create/' ), 'HTTP downgrade Create URL was not replaced by the safe fallback.' );
+	$assert( 'https://example.test/wp-admin/post-new.php' === CreateVisibility::filter_create_url( 'https://user:pass@example.test/create/' ), 'Credential-bearing Create URL was not replaced by the safe fallback.' );
 
 	$reset();
 	$GLOBALS['f20_logged_in']  = true;
