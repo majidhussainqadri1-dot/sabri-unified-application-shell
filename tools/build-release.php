@@ -4,10 +4,9 @@
  *
  * @package SabriUnifiedApplicationShell
  */
-
 $root        = dirname( __DIR__ );
 $slug        = 'sabri-unified-application-shell';
-$version     = '1.0.0';
+$version     = '1.0.1';
 $prefix      = '20-' . $slug . '-' . $version;
 $release_dir = $root . '/release';
 $zip_path    = $release_dir . '/' . $prefix . '.zip';
@@ -86,6 +85,7 @@ if ( true !== $verify->open( $zip_path, ZipArchive::CHECKCONS ) ) {
 $top_levels = array();
 $development_paths = array(
 	'.github/',
+	'patches/',
 	'tools/',
 	'tests/',
 	'TASK_LOG.md',
