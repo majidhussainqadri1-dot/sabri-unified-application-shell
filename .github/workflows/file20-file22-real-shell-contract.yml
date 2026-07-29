@@ -1,0 +1,69 @@
+name: File 20 File 22 Real Shell Contract
+
+on:
+  pull_request:
+    paths:
+      - 'includes/class-create-visibility.php'
+      - 'tests/run-file20-file22-real-shell-contract-tests.php'
+      - '.github/workflows/file20-file22-real-shell-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: file20-file22-shell-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  real-shell-contract:
+    name: Real Shell Bridge (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.3']
+
+    steps:
+      - name: Check out exact File 20 PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: file20
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Check out exact reviewed File 22 Phase 22E source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: majidhussainqadri1-dot/sabri-universal-post-composer
+          ref: 9aed674344c33b8756b65e7bc58c223ac6ffc4ae
+          path: file22
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Verify source pins and syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C file20 rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          test "$(git -C file22 rev-parse HEAD)" = "9aed674344c33b8756b65e7bc58c223ac6ffc4ae"
+          php -l file20/includes/class-create-visibility.php
+          php -l file20/tests/run-file20-file22-real-shell-contract-tests.php
+          php -l file22/includes/contracts/interface-adapter.php
+          php -l file22/includes/contracts/interface-workflow-adapter.php
+          php -l file22/includes/core/class-permission-resolver.php
+          php -l file22/includes/core/class-registry.php
+          php -l file22/includes/integration/class-shell-bridge.php
+
+      - name: Run real cross-repository Shell contract
+        shell: bash
+        env:
+          FILE22_ROOT: ${{ github.workspace }}/file22
+        run: php file20/tests/run-file20-file22-real-shell-contract-tests.php
