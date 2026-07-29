@@ -2,7 +2,7 @@
 
 Sabri Unified Application Shell is an independent WordPress plugin that adds a secure, responsive public application shell for the Sabri Social Homeopathy Platform.
 
-Version: 1.0.0
+Version: 1.0.1
 Plugin slug: `sabri-unified-application-shell`
 Text domain: `sabri-unified-application-shell`
 Author: Dr. Allama Majid Hussain Sabri
@@ -141,7 +141,20 @@ The plugin links to real detected systems only.
 
 ## Permissions
 
-Admin settings require `manage_options`. The public Create button appears only when the logged-in user has `edit_posts` and belongs to a configured allowed role. Default allowed roles are `administrator` and `editor`. The shell never grants publishing capabilities.
+Admin settings require `manage_options`. File 20 never grants publishing capabilities.
+
+Version 1.0.1 keeps login, Safe Mode, constant disable, and Emergency Disable non-overridable. The legacy fallback still requires `edit_posts` plus a configured allowed role. File 22 may replace only that legacy presentation result through `sabri_shell_can_show_create` after central Membership Core, capability, adapter, and availability checks.
+
+Desktop and mobile Create use the same request-time decision. A denied explicit mobile `create` setting is changed to Doctors for that request; an authorized setting uses the shared automatic decision. These compatibility changes are not persisted to the database.
+
+Read-only producer functions:
+
+```php
+sabri_shell_create_contract_available();
+sabri_shell_create_visible_for_current_user();
+```
+
+File 21 preserves its native fallback unless both functions confirm the complete current-user gateway.
 
 ## Accessibility
 
