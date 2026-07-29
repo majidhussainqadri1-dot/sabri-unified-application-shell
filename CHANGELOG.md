@@ -12,8 +12,9 @@
 - Added Create contract version, ownership, producer, readiness, current-user visibility, and URL health rows to System Check.
 - Added focused tests for Header/Create parity, login, capability, Safe Mode, central authorization, narrowing, mobile preference, recursion, malformed settings, URL validation, ownership, and no-write behavior.
 - Added exact-head checkout verification, complete shipped-source PHP 7.4 lint, expanded pinned-hybrid workflow triggers, and deterministic two-build candidate ZIP comparison.
+- Added a pinned Files 20/21/22 convergence gate that runs the actual File 20 producer, actual File 21 workflow adapter and maintenance contracts, and selected actual File 22 Shell/Workflow source on PHP 8.1 and 8.3.
 - Expanded Hostinger staging acceptance for Files 00/20/21/22 role, status, dependency, fallback, cache, accessibility, backup, and rollback matrices.
-- Narrowed the cross-repository evidence claim to a pinned hybrid source contract until actual multi-plugin staging is completed.
+- Narrowed cross-repository evidence claims to pinned source-contract convergence until actual multi-plugin staging is completed.
 - Kept all runtime changes Draft, unmerged, and undeployed pending independent review and controlled staging.
 
 ## 1.0.0
