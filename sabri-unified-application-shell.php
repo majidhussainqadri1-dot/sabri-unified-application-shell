@@ -26,10 +26,11 @@ define( 'SABRI_SHELL_TEXT_DOMAIN', 'sabri-unified-application-shell' );
 
 $create_contract_unclaimed = ! function_exists( 'sabri_shell_create_contract_available' )
 	&& ! function_exists( 'sabri_shell_create_visible_for_current_user' );
-$create_owner_unclaimed = ! defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' )
+$create_markers_unclaimed = ! defined( 'SABRI_SHELL_CREATE_CONTRACT_VERSION' )
+	&& ! defined( 'SABRI_SHELL_CREATE_CONTRACT_OWNER' )
 	&& ! defined( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED' );
 
-if ( $create_contract_unclaimed && $create_owner_unclaimed ) {
+if ( $create_contract_unclaimed && $create_markers_unclaimed ) {
 	define( 'SABRI_SHELL_CREATE_CONTRACT_VERSION', '1.0.1' );
 	define( 'SABRI_SHELL_CREATE_CONTRACT_OWNER', SABRI_SHELL_SLUG );
 	define( 'SABRI_SHELL_CREATE_FUNCTIONS_OWNED', true );
