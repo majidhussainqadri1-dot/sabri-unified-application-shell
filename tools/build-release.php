@@ -1,6 +1,6 @@
 <?php
 /**
- * Build release ZIP, SHA-256, and test report.
+ * Build reproducible release ZIP, SHA-256, and test report.
  *
  * @package SabriUnifiedApplicationShell
  */
@@ -12,6 +12,13 @@ $release_dir = $root . '/release';
 $zip_path    = $release_dir . '/' . $prefix . '.zip';
 $sha_path    = $release_dir . '/' . $prefix . '.sha256';
 $report_path = $release_dir . '/' . $prefix . '-TEST-REPORT.md';
+$epoch       = getenv( 'SOURCE_DATE_EPOCH' );
+$epoch       = is_string( $epoch ) && ctype_digit( $epoch ) ? (int) $epoch : 1785283200;
+
+if ( $epoch < 315532800 ) {
+	fwrite( STDERR, "SOURCE_DATE_EPOCH must be a valid ZIP-era timestamp.\n" );
+	exit( 1 );
+}
 
 if ( ! is_dir( $release_dir ) ) {
 	mkdir( $release_dir, 0777, true );
@@ -25,12 +32,6 @@ foreach ( glob( $release_dir . '/*' ) as $file ) {
 
 $argv[] = '--report=' . $report_path;
 require $root . '/tools/run-tests.php';
-
-$zip = new ZipArchive();
-if ( true !== $zip->open( $zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
-	fwrite( STDERR, "Unable to create release ZIP.\n" );
-	exit( 1 );
-}
 
 $release_allowlist = array(
 	'sabri-unified-application-shell.php',
@@ -47,6 +48,7 @@ $release_allowlist = array(
 	'STAGING-ACCEPTANCE.md',
 );
 
+$release_files = array();
 $iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
 foreach ( $iterator as $file ) {
 	if ( ! $file->isFile() ) {
@@ -65,15 +67,39 @@ foreach ( $iterator as $file ) {
 	if ( ! $allowed ) {
 		continue;
 	}
-
 	if ( false !== strpos( $relative, '..' ) ) {
 		fwrite( STDERR, "Path traversal candidate rejected: {$relative}\n" );
 		exit( 1 );
 	}
+	$release_files[ $relative ] = $file->getPathname();
+}
+ksort( $release_files, SORT_STRING );
 
-	$zip->addFile( $file->getPathname(), $slug . '/' . $relative );
+$zip = new ZipArchive();
+if ( true !== $zip->open( $zip_path, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
+	fwrite( STDERR, "Unable to create release ZIP.\n" );
+	exit( 1 );
 }
 
+foreach ( $release_files as $relative => $source_path ) {
+	$entry = $slug . '/' . $relative;
+	$data  = file_get_contents( $source_path );
+	if ( false === $data || ! $zip->addFromString( $entry, $data ) ) {
+		fwrite( STDERR, "Unable to add release entry: {$relative}\n" );
+		$zip->close();
+		exit( 1 );
+	}
+	if ( method_exists( $zip, 'setMtimeName' ) ) {
+		$zip->setMtimeName( $entry, $epoch );
+	}
+	if ( method_exists( $zip, 'setCompressionName' ) ) {
+		$zip->setCompressionName( $entry, ZipArchive::CM_STORE );
+	}
+	if ( method_exists( $zip, 'setExternalAttributesName' ) ) {
+		$zip->setExternalAttributesName( $entry, ZipArchive::OPSYS_UNIX, 0100644 << 16 );
+	}
+}
+$zip->setArchiveComment( '' );
 $zip->close();
 
 $verify = new ZipArchive();
@@ -106,6 +132,11 @@ for ( $i = 0; $i < $verify->numFiles; $i++ ) {
 			fwrite( STDERR, "Development-only path found in release ZIP: {$inside_plugin}\n" );
 			exit( 1 );
 		}
+	}
+	$stat = $verify->statIndex( $i );
+	if ( ! is_array( $stat ) || (int) $stat['mtime'] !== $epoch ) {
+		fwrite( STDERR, "Non-reproducible ZIP timestamp found: {$name}\n" );
+		exit( 1 );
 	}
 	$top_levels[ strtok( $name, '/' ) ] = true;
 }
