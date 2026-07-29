@@ -48,6 +48,7 @@ jobs:
           php tools/run-tests.php --report=release/20-sabri-unified-application-shell-1.0.1-TEST-REPORT.md
           php tests/run-file20-file21-slot-tests.php
           php tests/run-file20-create-producer-tests.php
+          php tests/run-file20-create-roleless-tests.php
 
       - name: Validate JSON where applicable
         run: |
